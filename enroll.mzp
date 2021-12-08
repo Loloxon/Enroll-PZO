@@ -1,0 +1,14 @@
+{
+    "openFiles": [
+        "enroll.mzn",
+        "data/trivial.dzn"
+    ],
+    "openTab": 0,
+    "projectFiles": [
+        "data/trivial.dzn",
+        "enroll.mzn"
+    ],
+    "selectedBuiltinConfigId": "org.gecode.gecode",
+    "selectedBuiltinConfigVersion": "6.3.0",
+    "version": 106
+}
