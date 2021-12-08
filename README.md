@@ -106,4 +106,4 @@ The last four lines (objective components) will be useful for the grader script 
 [^student_loves_breaks]: `student_loves_breaks` array tells whether student accepts long break between the groups.
 [^student_prefers]: `student_prefers` matrix contains prefences[^preference] student[^student] assigns to various groups[^groups]. If all the groups of the given class have assigned the lowest preference it means that student doesn't attend this class.
 [^break_to_disappointment_multiplier]: `break_to_disappointment_multiplier` is a weight associated with the "long breaks" objective component.
-[^late_to_disappointment_multiplier]: is a weight associated with the "being late" objective component.
+[^late_to_disappointment_multiplier]: `late_to_disappointment_multiplier` is a weight associated with the "being late" objective component.
