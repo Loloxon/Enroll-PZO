@@ -25,7 +25,7 @@ So, first, the input has to contain the current schedule of all the involved gro
 
 ### Schedule 
 
-Each group belongs to a class[^class][^group_class] (e.g. `Constraint Programming: Lab`) with a specified duration[^class_duration] in a well defined time unit[^time]. We also have to know which day[^group_day] and at what hour[^group_start] the groups start their activities. This way we can guarantee that student doesn't attend two different groups at the same time. We shouldn't forget about the space restrictions, each class has an upper limit for the number of students in the single group[^group_size].
+Each group belongs to a class[^class][^group_class] (e.g. `Constraint Programming: Lab`) with a specified duration[^class_duration] in a well defined time unit[^time]. We also have to know which day[^group_day] and at what hour[^group_start] the groups start their activities. This way we can guarantee that student doesn't attend two different groups at the same time. We shouldn't forget about the space restrictions, each class has an upper limit for the number of students in the single group[^class_size].
 
 Other important factor is that we have to know in what building[^location][^group_location] the group occupies the classroom, so later we can calculate the time required to move between the groups[^travel_duration]. We have to guarantee that student is able to transport between the buildings. There is defined hard limit for being late[^being_late_treshold] and it should never be breached.
 
