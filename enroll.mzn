@@ -33,3 +33,33 @@ array[Group] of Day: group_day;
 array[int] of set of Group: group_cohabitats;
 
 array[Location, Location] of Time: travel_duration;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+int: start = min(group_start);
+int: end = max(group_start) + max(class_duration);
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% numery klas dla danego studenta dla danego dnia
+array[Student, Day, Time] of var Class: Students; 
+
+% constraint ;
+
+solve satisfy;
+
+% najpierw numer studenta
+% nastepnie dla kazdego studenta kolejne dni rozpisane na godziny
+ 
+output [if D==1 /\ T==start then show(S) ++ "\n" else "" endif ++
+    if T==start then show(D) ++ ": " else "" endif ++
+    show(Students[S,D,T]) ++ if T == end then "\n" else ", " endif
+    |S in Student, 
+    D in Day, 
+    T in start..end]
+
+
+
+
+
+
+
+
+
