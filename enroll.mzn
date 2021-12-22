@@ -4,11 +4,15 @@ int: n_days;
 int: n_classes;
 int: n_groups;
 int: n_locations;
+
 int: n_time_units_in_hour;
 int: exclusion = -1;
 
+%% nieprzekraczalne 
 int: being_late_treshold;
+%% mnożymy ilość minut razy late_to_disappointment_multiplier 
 int: late_to_disappointment_multiplier;
+%% przerwa w minutach razy break_to_disappointment_multiplier 
 int: break_to_disappointment_multiplier;
 
 set of int: Student = 1..n_students;
@@ -39,7 +43,7 @@ int: start = min(group_start);
 int: end = max(group_start) + max(class_duration);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % numery klas dla danego studenta dla danego dnia
-array[Student, Day, start..end] of var Class: Students; 
+array[Student, Day, start..end] of var Group: Schedule; 
 
 % constraint ;
 
@@ -50,7 +54,7 @@ solve satisfy;
  
 output [if D==1 /\ T==start then "student nr: " ++ show(S) ++ ".\n" else "" endif ++
     if T==start then show(D) ++ ": " else "" endif ++
-    show(Students[S,D,T]) ++ if T == end then "\n" else ", " endif
+    show(Schedule[S,D,T]) ++ if T == end then "\n" else ", " endif
     |S in Student, 
     D in Day, 
     T in start..end]
