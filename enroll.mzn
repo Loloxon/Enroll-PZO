@@ -55,7 +55,7 @@ solve satisfy;
 % najpierw numer studenta
 % nastepnie dla kazdego studenta kolejne dni rozpisane na godziny
  
-output ["     "] ++ [if T<100 then show(T) ++ ", " else show(T) ++ "," endif |T in start..end] ++ ["\n"] ++
+output ["Time:"] ++ [if T<100 then show(T) ++ ", " else show(T) ++ "," endif |T in start..end] ++ ["\n"] ++
     [if T==start then show(S) ++ "." else "" endif ++
     if T==start then show(D) ++ ": " else "" endif ++
     show(Schedule[S,D,T]) ++ if T == end then "\n" else ",  " endif ++ 
