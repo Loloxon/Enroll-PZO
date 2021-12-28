@@ -58,10 +58,12 @@ array[Student, Day, start..end] of var 0..n_groups: Schedule;
 array[Student, Class] of var 0..n_groups: GroupAssignment;
 
 % constraints
-constraint forall(S in Student, C in Class)(group_class[GroupAssignment[S,C]] == C);
-% constraint forall(S in Student, D in Day, T in start..end, id in Group)
-%   (if T >= group_start[id] /\ T < group_start[id] + class_duration[group_class[id]] /\  D == group_day[id]
-%   then Schedule[S,D,T] = S endif);
+%studenci przypisanie do grup
+constraint forall(S in Student, C in Class)
+  (if forall(G in Group)(student_prefers[S,G] == -1 \/ group_class[G] != C) 
+    then GroupAssignment[S,C] = 0   
+    else group_class[GroupAssignment[S,C]] = C endif);  
+
 
 %grupy rozłączne
 constraint forall(S in Student, C1,C2 in Class where C1<C2)
@@ -73,6 +75,10 @@ constraint forall(S in Student, C1,C2 in Class where C1<C2)
 
 %grupy nie przekraczaja liczebnosci
 constraint forall(G in Group)(count(col(GroupAssignment,group_class[G]),G)<=class_size[group_class[G]]);
+
+% constraint forall(S in Student, D in Day, T in start..end, id in Group)
+%   (if T >= group_start[id] /\ T < group_start[id] + class_duration[group_class[id]] /\  D == group_day[id]
+%   then Schedule[S,D,T] = S endif);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 %%do wyświetlania
