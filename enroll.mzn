@@ -58,10 +58,9 @@ array[Student, Day, start..end] of var 0..n_groups: Schedule;
 array[Student, Class] of var 0..n_groups: GroupAssignment;
 
 % constraints
-constraint forall(S in Student, C in Class, G in Group)
-  (if group_class[G] == C /\ student_prefers[S,G] == -1 
-    then GroupAssignment[S,C] = 0 
-    else GroupAssignment[S,C] = G endif);
+constraint forall(S in Student, C in Class)
+  (if forall(G in Group)(student_prefers[S,G] == -1 \/ group_class[G] != C) then GroupAssignment[S,C] = 0 else group_class[GroupAssignment[S,C]] = C endif);  
+
 % constraint forall(S in Student, D in Day, T in start..end, id in Group)
 %   (if T >= group_start[id] /\ T < group_start[id] + class_duration[group_class[id]] /\  D == group_day[id]
 %   then Schedule[S,D,T] = S endif);
