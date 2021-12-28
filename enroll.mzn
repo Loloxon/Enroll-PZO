@@ -62,7 +62,7 @@ array[Student, Class] of var 0..n_groups: GroupAssignment;
 constraint forall(S in Student, C in Class)
   (if forall(G in Group)(student_prefers[S,G] == -1 \/ group_class[G] != C) 
     then GroupAssignment[S,C] = 0   
-    else group_class[GroupAssignment[S,C]] = C endif);  
+    else group_class[GroupAssignment[S,C]] = C /\ student_prefers[S,GroupAssignment[S,C]] != -1 endif);  
 
 
 %grupy rozłączne
