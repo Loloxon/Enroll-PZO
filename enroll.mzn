@@ -47,7 +47,9 @@ int: end = max(group_start) + max(class_duration);
 array[Student, Day, start..end] of var Group: Schedule; 
 
 % constraints
-% constraint 
+constraint forall(S in Student, D in Day, T in start..end, id in Group)
+  (if T >= group_start[id] /\ T < group_start[id] + class_duration[group_class[id]] /\  D == group_day[id]
+  then Schedule[S,D,T] = S endif);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 solve satisfy;
