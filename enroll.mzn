@@ -27,7 +27,7 @@ set of int: Group = 1..n_groups;
 set of int: Day = 1..n_days;
 set of int: Location = 1..n_locations;
 set of int: Time = 0..n_time_units_in_hour * 24;
-%nie wiem do czego to miało by być
+
 set of int: Preference = exclusion..max([student_prefers[s,g] | s in Student, g in Group]);
 
 %info o studentach
@@ -51,6 +51,11 @@ array[Location, Location] of Time: travel_duration;
 %time range
 int: start = min(group_start);
 int: end = max(group_start) + max(class_duration);
+
+%niezadowolenie z przydziału grup do zminimalizowania
+array[Student] of var Preference : preference_disappointment;  
+array[Student, Class] of var Preference : best_preferences;
+array[Student, Class] of var Preference : got_preferences;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % numery grup(w tym klas) dla danego studenta dla danego dnia dla danej godziny
 array[Student, Day, start..end] of var 0..n_groups: Schedule; 
@@ -76,9 +81,12 @@ constraint forall(S in Student, C1,C2 in Class where C1<C2)
 %grupy nie przekraczaja liczebnosci
 constraint forall(G in Group)(count(col(GroupAssignment,group_class[G]),G)<=class_size[group_class[G]]);
 
-% constraint forall(S in Student, D in Day, T in start..end, id in Group)
-%   (if T >= group_start[id] /\ T < group_start[id] + class_duration[group_class[id]] /\  D == group_day[id]
-%   then Schedule[S,D,T] = S endif);
+%liczenie sumy niezadowolenia z doboru grup
+constraint forall(S in Student, C in Class)(best_preferences[S,C] = max(student_prefers[S,Group]));
+
+constraint forall(S in Student, C in Class)(if GroupAssignment[S,C] != 0 then got_preferences[S,C] = student_prefers[S,GroupAssignment[S,C]] else got_preferences[S,C] = -1 endif);
+
+constraint forall(S in Student)(preference_disappointment[S] = sum([best_preferences[S,C] - got_preferences[S,C]| C in Class]));
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 %%do wyświetlania
@@ -87,7 +95,7 @@ constraint forall(S in Student, D in Day, T in start..end, C in Class)
      T >= group_start[GroupAssignment[S,C]] /\ 
      T < group_start[GroupAssignment[S,C]] + class_duration[C] then Schedule[S,D,T] = GroupAssignment[S,C] endif);
 %%%%%%%%%%%%%%%%%%%%%%%%%%
-solve satisfy;
+solve minimize sum(preference_disappointment);
 
 % najpierw numer studenta
 % nastepnie dla kazdego studenta kolejne dni rozpisane na godziny
