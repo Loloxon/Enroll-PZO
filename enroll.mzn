@@ -53,13 +53,25 @@ int: start = min(group_start);
 int: end = max(group_start) + max(class_duration);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % numery grup(w tym klas) dla danego studenta dla danego dnia dla danej godziny
-array[Student, Day, start..end] of var Group: Schedule; 
+array[Student, Day, start..end] of var 0..n_groups: Schedule; 
+%przydział grup dla przedmiotów do studentów
+array[Student, Class] of var 0..n_groups: GroupAssignment;
 
 % constraints
-constraint forall(S in Student, D in Day, T in start..end, id in Group)
-  (if T >= group_start[id] /\ T < group_start[id] + class_duration[group_class[id]] /\  D == group_day[id]
-  then Schedule[S,D,T] = S endif);
+constraint forall(S in Student, C in Class, G in Group)
+  (if group_class[G] == C /\ student_prefers[S,G] == -1 
+    then GroupAssignment[S,C] = 0 
+    else GroupAssignment[S,C] = G endif);
+% constraint forall(S in Student, D in Day, T in start..end, id in Group)
+%   (if T >= group_start[id] /\ T < group_start[id] + class_duration[group_class[id]] /\  D == group_day[id]
+%   then Schedule[S,D,T] = S endif);
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%do wyświetlania
+constraint forall(S in Student, D in Day, T in start..end, C in Class)
+  (if group_day[GroupAssignment[S,C]] == D /\
+     T >= group_start[GroupAssignment[S,C]] /\ 
+     T < group_start[GroupAssignment[S,C]] + class_duration[C] then Schedule[S,D,T] = GroupAssignment[S,C] endif);
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 solve satisfy;
 
