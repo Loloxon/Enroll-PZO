@@ -58,12 +58,27 @@ array[Student, Day, start..end] of var 0..n_groups: Schedule;
 array[Student, Class] of var 0..n_groups: GroupAssignment;
 
 % constraints
+<<<<<<< HEAD
 constraint forall(S in Student, C in Class)
   (if forall(G in Group)(student_prefers[S,G] == -1 \/ group_class[G] != C) then GroupAssignment[S,C] = 0 else group_class[GroupAssignment[S,C]] = C endif);  
 
+=======
+constraint forall(S in Student, C in Class)(group_class[GroupAssignment[S,C]] == C);
+>>>>>>> a4fec23971c7140898562943d33d73500a404a4e
 % constraint forall(S in Student, D in Day, T in start..end, id in Group)
 %   (if T >= group_start[id] /\ T < group_start[id] + class_duration[group_class[id]] /\  D == group_day[id]
 %   then Schedule[S,D,T] = S endif);
+
+%grupy rozłączne
+constraint forall(S in Student, C1,C2 in Class where C1<C2)
+  (if group_day[GroupAssignment[S,C1]] == group_day[GroupAssignment[S,C2]]% oraz nie są cohabitats *TODO*
+    then if student_can_teleport[S] 
+      then group_start[GroupAssignment[S,C1]] + class_duration[C1] - being_late_treshold <= group_start[GroupAssignment[S,C2]]
+      else group_start[GroupAssignment[S,C1]] + class_duration[C1] + travel_duration[GroupAssignment[S,C1],GroupAssignment[S,C2]] - being_late_treshold <= group_start[GroupAssignment[S,C2]] 
+     endif endif);
+
+%grupy nie przekraczaja liczebnosci
+constraint forall(G in Group)(count(col(GroupAssignment,group_class[G]),G)<=class_size[group_class[G]]);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 %%do wyświetlania
