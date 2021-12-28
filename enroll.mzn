@@ -84,11 +84,11 @@ constraint forall(G in Group)(count(col(GroupAssignment,group_class[G]),G)<=clas
 %liczenie sumy niezadowolenia z doboru grup
 constraint forall(S in Student, C in Class)(best_preferences[S,C] = max(student_prefers[S,Group]));
 
-% constraint forall(S in Student, C in Class)(if GroupAssignment[S,C] != 0 then got_preferences[S,C] = student_prefers[S,GroupAssignment[S,C]] else got_preferences[S,C] = -1 endif);
+constraint forall(S in Student, C in Class)(if GroupAssignment[S,C] != 0 then got_preferences[S,C] = student_prefers[S,GroupAssignment[S,C]] else got_preferences[S,C] = -1 endif);
 
-constraint forall(S in Student)(preference_disappointment[S] = sum([max(student_prefers[S,Group]) - got_preferences[S,C]| C in Class]));
+% constraint forall(S in Student)(preference_disappointment[S] = sum([max(student_prefers[S,Group]) - got_preferences[S,C]| C in Class]));
 
-constraint forall(S in Student)(preference_disappointment[S] = sum([max(student_prefers[S,Group]) - got_preferences[S,C]| C in Class]));
+constraint forall(S in Student)(preference_disappointment[S] = sum([best_preferences[S,C] - got_preferences[S,C]| C in Class]));
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 %%do wyświetlania
