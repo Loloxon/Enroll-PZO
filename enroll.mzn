@@ -1,13 +1,18 @@
 % Parameters
+%ilosc studentów
 int: n_students;
+%ilość dni
 int: n_days;
+%ilość przedmiotów
 int: n_classes;
+%ilość wszystkich grup
 int: n_groups;
+%ilość budynków
 int: n_locations;
-
+%ilość jednostek czasu w godzinie
 int: n_time_units_in_hour;
+%wartość oznaczająca nie chodzenie na przedmiot
 int: exclusion = -1;
-
 %% nieprzekraczalne 
 int: being_late_treshold;
 %% mnożymy ilość minut razy late_to_disappointment_multiplier 
@@ -15,14 +20,17 @@ int: late_to_disappointment_multiplier;
 %% przerwa w minutach razy break_to_disappointment_multiplier 
 int: break_to_disappointment_multiplier;
 
+%sety zrobione z wartości wyżej
 set of int: Student = 1..n_students;
 set of int: Class = 1..n_classes;
 set of int: Group = 1..n_groups;
 set of int: Day = 1..n_days;
 set of int: Location = 1..n_locations;
 set of int: Time = 0..n_time_units_in_hour * 24;
+%nie wiem do czego to miało by być
 set of int: Preference = exclusion..max([student_prefers[s,g] | s in Student, g in Group]);
 
+%info o studentach
 array[Student] of bool: student_can_teleport;
 array[Student] of bool: student_loves_breaks;
 array[Student, Group] of int: student_prefers;
@@ -30,12 +38,13 @@ array[Student, Group] of int: student_prefers;
 array[Class] of Time: class_duration;
 array[Class] of int: class_size;
 
+%info o grupach
 array[Group] of Class: group_class;
 array[Group] of Time: group_start;
 array[Group] of Location: group_location;
 array[Group] of Day: group_day;
 array[int] of set of Group: group_cohabitats;
-
+%odległość między budynkami
 array[Location, Location] of Time: travel_duration;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
