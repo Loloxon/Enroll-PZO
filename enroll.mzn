@@ -56,6 +56,10 @@ int: end = max(group_start) + max(class_duration);
 array[Student] of var Preference : preference_disappointment;  
 array[Student, Class] of var Preference : best_preferences;
 array[Student, Class] of var Preference : got_preferences;
+%niezadowolenie z powodu przerw
+array[Student] of var int : break_disappointment;
+array[Student, Day] of var int : staying_at_uni;
+array[Student, Day] of var int : length_of_lessons; 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % numery grup(w tym klas) dla danego studenta dla danego dnia dla danej godziny
 array[Student, Day, start..end] of var 0..n_groups: Schedule; 
@@ -81,13 +85,32 @@ constraint forall(S in Student, C1,C2 in Class where C1<C2)
 %grupy nie przekraczaja liczebnosci
 constraint forall(G in Group)(count(col(GroupAssignment,group_class[G]),G)<=class_size[group_class[G]]);
 
-%liczenie sumy niezadowolenia z doboru grup
-%liczenie najlepszych preferencji
+
+%%PREFERENCE_DISAPPOINTMENT
+%liczenie oczekiwanych preferecnji na każdy przedmiot
 constraint forall(S in Student, C in Class)(best_preferences[S,C] = max([if group_class[G] = C then student_prefers[S,G] else -1 endif | G in Group]));
-%liczenie otrzymanych preferencji
+%liczenie otrzymanych preferencji na każdy przedmiot
 constraint forall(S in Student, C in Class)(if GroupAssignment[S,C] != 0 then got_preferences[S,C] = student_prefers[S,GroupAssignment[S,C]] else got_preferences[S,C] = -1 endif);
-%liczenie preference disappointment
+%liczenie sumy niezadowolenia z doboru grup
 constraint forall(S in Student)(preference_disappointment[S] = sum([best_preferences[S,C] - got_preferences[S,C]| C in Class]));
+
+%liczenie niezadowolenia z przerw
+%liczenie czasu na uniwesytecie razem z przerwami
+constraint forall(S in Student, D in Day)(staying_at_uni[S,D] = max([if group_day[GroupAssignment[S,C]] == D 
+                                                                      then group_start[GroupAssignment[S,C]] + class_duration[group_class[GroupAssignment[S,D]]] 
+                                                                      else 0 endif | C in Class])
+                                                               - min([if group_day[GroupAssignment[S,C]] == D 
+                                                                       then group_start[GroupAssignment[S,C]] 
+                                                                       else n_time_units_in_hour * 24 endif 
+                                                                       | C in Class]));
+%liczenie czasu na zajęciach
+constraint forall(S in Student, D in Day)(length_of_lessons[S,D] = sum([if group_day[GroupAssignment[S,C]] == D 
+                                                                         then class_duration[group_class[GroupAssignment[S,D]]] 
+                                                                         else 0 endif 
+                                                                         | C in Class]));
+%liczenie break_dissapointment
+constraint forall(S in Student)(break_disappointment[S] = sum([staying_at_uni[S,D] | D in Day where staying_at_uni[S,D]>0]) - sum([length_of_lessons[S,D] | D in Day]));
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 %%do wyświetlania
@@ -95,8 +118,10 @@ constraint forall(S in Student, D in Day, T in start..end, C in Class)
   (if group_day[GroupAssignment[S,C]] == D /\
      T >= group_start[GroupAssignment[S,C]] /\ 
      T < group_start[GroupAssignment[S,C]] + class_duration[C] then Schedule[S,D,T] = GroupAssignment[S,C] endif);
+     
 %%%%%%%%%%%%%%%%%%%%%%%%%%
-solve minimize sum(preference_disappointment);
+var int : objective = sum(preference_disappointment) + sum([break_to_disappointment_multiplier*break_disappointment[S] | S in Student]);
+solve minimize objective;
 
 % najpierw numer studenta
 % nastepnie dla kazdego studenta kolejne dni rozpisane na godziny
@@ -108,7 +133,8 @@ output ["Time:"] ++ [if T<100 then show(T) ++ ", " else show(T) ++ "," endif |T 
     if T == end /\ D==n_days then "\n" else "" endif
     |S in Student, 
     D in Day, 
-    T in start..end]
+    T in start..end] ++ ["\n" ++ show(objective)]
+    
 
 
 
