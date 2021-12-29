@@ -118,8 +118,9 @@ constraint forall(S in Student, D in Day, T in start..end, C in Class)
   (if group_day[GroupAssignment[S,C]] == D /\
      T >= group_start[GroupAssignment[S,C]] /\ 
      T < group_start[GroupAssignment[S,C]] + class_duration[C] then Schedule[S,D,T] = GroupAssignment[S,C] endif);
+     
 %%%%%%%%%%%%%%%%%%%%%%%%%%
-solve minimize sum(preference_disappointment);
+solve minimize sum(preference_disappointment) + sum([break_to_disappointment_multiplier*break_disappointment[S] | S in Student]);
 
 % najpierw numer studenta
 % nastepnie dla kazdego studenta kolejne dni rozpisane na godziny
