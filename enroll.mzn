@@ -88,7 +88,7 @@ constraint forall(G in Group)(count(col(GroupAssignment,group_class[G]),G)<=clas
 
 %%PREFERENCE_DISAPPOINTMENT
 %liczenie oczekiwanych preferecnji na każdy przedmiot
-constraint forall(S in Student, C in Class)(best_preferences[S,C] = max(student_prefers[S,Group]));
+constraint forall(S in Student, C in Class)(best_preferences[S,C] = max([if group_class[G] = C then student_prefers[S,G] else -1 endif | G in Group]));
 %liczenie otrzymanych preferencji na każdy przedmiot
 constraint forall(S in Student, C in Class)(if GroupAssignment[S,C] != 0 then got_preferences[S,C] = student_prefers[S,GroupAssignment[S,C]] else got_preferences[S,C] = -1 endif);
 %liczenie sumy niezadowolenia z doboru grup
@@ -101,7 +101,7 @@ constraint forall(S in Student, D in Day)(staying_at_uni[S,D] = max([if group_da
                                                                       else 0 endif | C in Class])
                                                                - min([if group_day[GroupAssignment[S,C]] == D 
                                                                        then group_start[GroupAssignment[S,C]] 
-                                                                       else 1440 endif 
+                                                                       else n_time_units_in_hour * 24 endif 
                                                                        | C in Class]));
 %liczenie czasu na zajęciach
 constraint forall(S in Student, D in Day)(length_of_lessons[S,D] = sum([if group_day[GroupAssignment[S,C]] == D 
@@ -120,7 +120,8 @@ constraint forall(S in Student, D in Day, T in start..end, C in Class)
      T < group_start[GroupAssignment[S,C]] + class_duration[C] then Schedule[S,D,T] = GroupAssignment[S,C] endif);
      
 %%%%%%%%%%%%%%%%%%%%%%%%%%
-solve minimize sum(preference_disappointment) + sum([break_to_disappointment_multiplier*break_disappointment[S] | S in Student]);
+var int : objective = sum(preference_disappointment) + sum([break_to_disappointment_multiplier*break_disappointment[S] | S in Student]);
+solve minimize objective;
 
 % najpierw numer studenta
 % nastepnie dla kazdego studenta kolejne dni rozpisane na godziny
@@ -132,7 +133,8 @@ output ["Time:"] ++ [if T<100 then show(T) ++ ", " else show(T) ++ "," endif |T 
     if T == end /\ D==n_days then "\n" else "" endif
     |S in Student, 
     D in Day, 
-    T in start..end]
+    T in start..end] ++ ["\n" ++ show(objective)]
+    
 
 
 
