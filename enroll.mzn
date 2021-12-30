@@ -97,19 +97,21 @@ constraint forall(S in Student)(preference_disappointment[S] = sum([best_prefere
 %liczenie niezadowolenia z przerw
 %liczenie czasu na uniwesytecie razem z przerwami
 constraint forall(S in Student, D in Day)(staying_at_uni[S,D] = max([if group_day[GroupAssignment[S,C]] == D 
-                                                                      then group_start[GroupAssignment[S,C]] + class_duration[group_class[GroupAssignment[S,D]]] 
-                                                                      else 0 endif | C in Class])
+                                                                      then group_start[GroupAssignment[S,C]] + class_duration[C] 
+                                                                      else 0 endif 
+                                                                      | C in Class])
                                                                - min([if group_day[GroupAssignment[S,C]] == D 
                                                                        then group_start[GroupAssignment[S,C]] 
                                                                        else n_time_units_in_hour * 24 endif 
                                                                        | C in Class]));
 %liczenie czasu na zajęciach
 constraint forall(S in Student, D in Day)(length_of_lessons[S,D] = sum([if group_day[GroupAssignment[S,C]] == D 
-                                                                         then class_duration[group_class[GroupAssignment[S,D]]] 
+                                                                         then class_duration[C] 
                                                                          else 0 endif 
                                                                          | C in Class]));
 %liczenie break_dissapointment
-constraint forall(S in Student)(break_disappointment[S] = sum([staying_at_uni[S,D] | D in Day where staying_at_uni[S,D]>0]) - sum([length_of_lessons[S,D] | D in Day]));
+% constraint forall(S in Student)(break_disappointment[S] = sum([staying_at_uni[S,D] | D in Day where staying_at_uni[S,D]>0]) - sum([length_of_lessons[S,D] | D in Day]));
+constraint forall(S in Student)(break_disappointment[S] = sum([staying_at_uni[S,D] - length_of_lessons[S,D] | D in Day where staying_at_uni[S,D]>=0]));
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -133,7 +135,14 @@ output ["Time:"] ++ [if T<100 then show(T) ++ ", " else show(T) ++ "," endif |T 
     if T == end /\ D==n_days then "\n" else "" endif
     |S in Student, 
     D in Day, 
-    T in start..end] ++ ["\n" ++ show(objective)]
+    T in start..end]
+%     ++ [show([best_preferences[S,D] | S in Student, D in Day]) ++ "\n"] 
+%     ++ [show([got_preferences[S,D] | S in Student, D in Day]) ++ "\n"]
+    ++ [show(sum(preference_disappointment)) ++ "\n"]
+%     ++ [show([staying_at_uni[S,D] | S in Student, D in Day]) ++ "\n"]
+%     ++ [show([length_of_lessons[S,D] | S in Student, D in Day]) ++ "\n"] 
+    ++ [show(sum([break_to_disappointment_multiplier*break_disappointment[S] | S in Student])) ++ "\n"]
+    ++ [show(objective) ++ "\n"]
     
 
 
