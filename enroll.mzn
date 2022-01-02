@@ -60,6 +60,9 @@ array[Student, Class] of var Preference : got_preferences;
 array[Student] of var int : break_disappointment;
 array[Student, Day] of var int : staying_at_uni;
 array[Student, Day] of var int : length_of_lessons; 
+%niezadowolenie z powodu spóźnień
+array[Student, Day] of var set of int: lessons;
+array[Student, Day] of var int: late_disappointment;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % numery grup(w tym klas) dla danego studenta dla danego dnia dla danej godziny
 array[Student, Day, start..end] of var 0..n_groups: Schedule; 
@@ -75,11 +78,13 @@ constraint forall(S in Student, C in Class)
 
 
 %grupy rozłączne
-constraint forall(S in Student, C1,C2 in Class where C1<C2)
+constraint forall(S in Student, C1,C2 in Class where C1!=C2)
   (if group_day[GroupAssignment[S,C1]] == group_day[GroupAssignment[S,C2]]% oraz nie są cohabitats *TODO*
     then if student_can_teleport[S] 
-      then group_start[GroupAssignment[S,C1]] + class_duration[C1] - being_late_treshold <= group_start[GroupAssignment[S,C2]]
-      else group_start[GroupAssignment[S,C1]] + class_duration[C1] + travel_duration[GroupAssignment[S,C1],GroupAssignment[S,C2]] - being_late_treshold <= group_start[GroupAssignment[S,C2]] 
+      then group_start[GroupAssignment[S,C1]] + class_duration[C1] - being_late_treshold <= group_start[GroupAssignment[S,C2]] \/
+          group_start[GroupAssignment[S,C2]] + class_duration[C2] - being_late_treshold <= group_start[GroupAssignment[S,C1]] 
+      else group_start[GroupAssignment[S,C1]] + class_duration[C1] + travel_duration[GroupAssignment[S,C1],GroupAssignment[S,C2]] - being_late_treshold <= group_start[GroupAssignment[S,C2]] \/
+          group_start[GroupAssignment[S,C2]] + class_duration[C2] + travel_duration[GroupAssignment[S,C2],GroupAssignment[S,C1]] - being_late_treshold <= group_start[GroupAssignment[S,C1]] 
      endif endif);
 
 %grupy nie przekraczaja liczebnosci
@@ -97,20 +102,26 @@ constraint forall(S in Student)(preference_disappointment[S] = sum([best_prefere
 %liczenie niezadowolenia z przerw
 %liczenie czasu na uniwesytecie razem z przerwami
 constraint forall(S in Student, D in Day)(staying_at_uni[S,D] = max([if group_day[GroupAssignment[S,C]] == D 
-                                                                      then group_start[GroupAssignment[S,C]] + class_duration[group_class[GroupAssignment[S,D]]] 
-                                                                      else 0 endif | C in Class])
+                                                                      then group_start[GroupAssignment[S,C]] + class_duration[C] 
+                                                                      else 0 endif 
+                                                                      | C in Class])
                                                                - min([if group_day[GroupAssignment[S,C]] == D 
                                                                        then group_start[GroupAssignment[S,C]] 
                                                                        else n_time_units_in_hour * 24 endif 
                                                                        | C in Class]));
 %liczenie czasu na zajęciach
 constraint forall(S in Student, D in Day)(length_of_lessons[S,D] = sum([if group_day[GroupAssignment[S,C]] == D 
-                                                                         then class_duration[group_class[GroupAssignment[S,D]]] 
+                                                                         then class_duration[C] 
                                                                          else 0 endif 
                                                                          | C in Class]));
 %liczenie break_dissapointment
-constraint forall(S in Student)(break_disappointment[S] = sum([staying_at_uni[S,D] | D in Day where staying_at_uni[S,D]>0]) - sum([length_of_lessons[S,D] | D in Day]));
-
+constraint forall(S in Student)(break_disappointment[S] = sum([staying_at_uni[S,D] - length_of_lessons[S,D] | D in Day where staying_at_uni[S,D]>=0]));
+%liczenie late_disappointment
+% constraint forall(S in Student, D in Day)(if group_day[GroupAssignment[S,C]=D then lessons[S,D] endif| C in Class);
+% constraint forall(S in Student, D in Day)(late_disappointment[S,D] = sum(
+%                                                           [if group_day[GroupAssignment[S,C1]] == D /\ group_day[GroupAssignment[S,C2]] == D /\
+%                                                           then late_disappointment[S,D]=1 endif 
+%                                                           | C1, C2 in Class where C1!=C2]));
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 %%do wyświetlania
@@ -133,7 +144,14 @@ output ["Time:"] ++ [if T<100 then show(T) ++ ", " else show(T) ++ "," endif |T 
     if T == end /\ D==n_days then "\n" else "" endif
     |S in Student, 
     D in Day, 
-    T in start..end] ++ ["\n" ++ show(objective)]
+    T in start..end]
+    ++ [show([best_preferences[S,D] | S in Student, D in Day]) ++ "\n"] 
+    ++ [show([got_preferences[S,D] | S in Student, D in Day]) ++ "\n"]
+    ++ [show(sum(preference_disappointment)) ++ "\n"]
+    ++ [show([staying_at_uni[S,D] | S in Student, D in Day]) ++ "\n"]
+    ++ [show([length_of_lessons[S,D] | S in Student, D in Day]) ++ "\n"] 
+    ++ [show(sum([break_to_disappointment_multiplier*break_disappointment[S] | S in Student])) ++ "\n"]
+    ++ [show(objective) ++ "\n"]
     
 
 
