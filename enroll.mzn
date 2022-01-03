@@ -67,7 +67,7 @@ array[Student, Day] of var set of int: lessons;
 array[Student, Day] of var int: late_disappointment;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % numery grup(w tym klas) dla danego studenta dla danego dnia dla danej godziny
-array[Student, Day, start..end] of var 0..n_groups: Schedule; 
+array[Student, Day, start..end, 1..2] of var 0..n_groups: Schedule; 
 %przydział grup dla przedmiotów do studentów
 array[Student, Class] of var 0..n_groups: GroupAssignment;
 
@@ -87,7 +87,7 @@ constraint forall(S in Student, C in Class)
 
 % grupy rozłączne
 constraint forall(S in Student, C1,C2 in Class where C1!=C2)
-  (if group_day[GroupAssignment[S,C1]] == group_day[GroupAssignment[S,C2]]/\ group_day[GroupAssignment[S,C1]] == group_day[GroupAssignment[S,C2]] /\ not xorall([GroupAssignment[S,C1] in group_cohabitats[G] /\ GroupAssignment[S,C2] in group_cohabitats[G] | G in GroupCohabitats])
+  (if group_day[GroupAssignment[S,C1]] == group_day[GroupAssignment[S,C2]] /\ not xorall([GroupAssignment[S,C1] in group_cohabitats[G] /\ GroupAssignment[S,C2] in group_cohabitats[G] | G in GroupCohabitats])
     then if student_can_teleport[S] 
       then group_start[GroupAssignment[S,C1]] + class_duration[C1] - being_late_treshold <= group_start[GroupAssignment[S,C2]] \/
           group_start[GroupAssignment[S,C2]] + class_duration[C2] - being_late_treshold <= group_start[GroupAssignment[S,C1]] 
@@ -137,6 +137,27 @@ constraint forall(S in Student)(break_disappointment[S] = sum([staying_at_uni[S,
 %   (if group_day[GroupAssignment[S,C]] == D /\
 %      T >= group_start[GroupAssignment[S,C]] /\ 
 %      T < group_start[GroupAssignment[S,C]] + class_duration[C] then Schedule[S,D,T] = GroupAssignment[S,C] endif);
+constraint forall(S in Student, C1,C2 in Class where C1<C2)(
+        if not xorall([GroupAssignment[S,C1] in group_cohabitats[G] /\ GroupAssignment[S,C2] in group_cohabitats[G] | G in GroupCohabitats])
+        then
+        forall(T1 in start..end, T2 in start..end)
+              (if T1 >= group_start[GroupAssignment[S,C1]] /\ T1 < group_start[GroupAssignment[S,C1]] + class_duration[C1]-1 
+                  then Schedule[S,group_day[GroupAssignment[S,C1]],T1,1] = GroupAssignment[S,C1] /\
+                  Schedule[S,group_day[GroupAssignment[S,C1]],T1,2] = GroupAssignment[S,C1]
+               endif /\
+               if T2 >= group_start[GroupAssignment[S,C2]] /\ T2 < group_start[GroupAssignment[S,C2]] + class_duration[C2]-1
+                  then Schedule[S,group_day[GroupAssignment[S,C2]],T2,1] = GroupAssignment[S,C2] /\
+                  Schedule[S,group_day[GroupAssignment[S,C2]],T2,2] = GroupAssignment[S,C2] 
+               endif)
+        else
+        forall(T1 in start..end, T2 in start..end)
+              (if T1 >= group_start[GroupAssignment[S,C1]] /\ T1 < group_start[GroupAssignment[S,C1]] + class_duration[C1]-1 
+                  then Schedule[S,group_day[GroupAssignment[S,C1]],T1,1] = GroupAssignment[S,C1] 
+               endif /\
+               if T2 >= group_start[GroupAssignment[S,C2]] /\ T2 < group_start[GroupAssignment[S,C2]] + class_duration[C2]-1
+                  then Schedule[S,group_day[GroupAssignment[S,C2]],T2,2] = GroupAssignment[S,C2] 
+               endif)
+        endif);
      
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 var int : objective = sum(preference_disappointment) + sum([break_to_disappointment_multiplier*break_disappointment[S] | S in Student]);
@@ -145,10 +166,10 @@ solve minimize objective;
 % najpierw numer studenta
 % nastepnie dla kazdego studenta kolejne dni rozpisane na godziny
  
-output ["Time:"] ++ [if T<100 then show(T) ++ ", " else show(T) ++ "," endif |T in start..end] ++ ["\n"] ++
+output ["Time:"] ++ [if T<100 then " " ++ show(T) ++ ";" else show(T) ++ ";" endif |T in start..end] ++ ["\n"] ++
     [if T==start then show(S) ++ "." else "" endif ++
-    if T==start then show(D) ++ ": " else "" endif ++
-    show(Schedule[S,D,T]) ++ if T == end then "\n" else ",  " endif ++ 
+    if T==start then show(D) ++ ":  " else "" endif ++
+    show(Schedule[S,D,T,1]) ++ "" ++ show(Schedule[S,D,T,2]) ++ if T == end then "\n" else "; " endif ++ 
     if T == end /\ D==n_days then "\n" else "" endif
     |S in Student, 
     D in Day, 
