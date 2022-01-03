@@ -127,7 +127,7 @@ constraint forall(S in Student)(break_disappointment[S] = sum([staying_at_uni[S,
 %liczenie late_disappointment
 % constraint forall(S in Student, D in Day)(if group_day[GroupAssignment[S,C]==D then lessons[S,D] endif| C in Class);
 constraint forall(S in Student)(late_disappointment[S] = sum(
-                                                          [if group_day[GroupAssignment[S,C1]] == D /\ group_day[GroupAssignment[S,C2]] == D /\
+                                                          [if group_day[GroupAssignment[S,C1]] == group_day[GroupAssignment[S,C2]] /\
                                   not xorall([GroupAssignment[S,C1] in group_cohabitats[G] /\ GroupAssignment[S,C2] in group_cohabitats[G] | G in GroupCohabitats])
                                                           then 
                                                             if group_start[GroupAssignment[S,C1]] < group_start[GroupAssignment[S,C2]]
@@ -144,7 +144,7 @@ constraint forall(S in Student)(late_disappointment[S] = sum(
                                                             endif
                                                           else 0
                                                           endif 
-                                                          | C1, C2 in Class where C1>C2, D in Day]));
+                                                          | C1, C2 in Class where C1>C2]));
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 %%do wyświetlania
