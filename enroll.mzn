@@ -179,7 +179,8 @@ solve :: int_search(preference_disappointment, first_fail, indomain_min) minimiz
 
 % najpierw numer studenta
 % nastepnie dla kazdego studenta kolejne dni rozpisane na godziny
- 
+array[Student, Group] of var bool: GroupAssignmentB;
+constraint forall(S in Student, G in Group)(if GroupAssignment[S,group_class[G]]=G then GroupAssignmentB[S,G]=1 else GroupAssignmentB[S,G]=0 endif);
 output 
 %     ["Time:"] ++ [if T<100 then " " ++ show(T) ++ ";" else show(T) ++ ";" endif |T in start..end] ++ ["\n"] ++
 %     [if T==start then show(S) ++ "." else "" endif ++
@@ -189,10 +190,24 @@ output
 %     |S in Student, 
 %     D in Day, 
 %     T in start..end] ++
-    ["assignment = ["] ++ 
-    [if C = 1 then "{" else " " endif ++ show(GroupAssignment[S,C]) ++ if C = n_classes then "}" else "" endif ++ 
-    if C = n_classes /\ S = n_students then "" else "," endif | S in Student, C in Class]
-    ++ ["];\ntotal_late_disappointment = " ++ show(sum([late_to_disappointment_multiplier*late_disappointment[S] | S in Student])) ++ ";\n"]
+%       [show(GroupAssignmentB[S,G]) | S in Student, G in Group] ++ ["\n"]
+      ["assignment = [" ++ join(",", ["{" ++ join(",", [show(g) |  g in Group where fix(GroupAssignmentB[s,g])]) ++ "}" | s in Student]) ++ "];\n"]
+%     ["assignment = ["] ++ 
+%     [if C = 1 
+%         then "{" 
+%         else " " 
+%     endif ++ 
+%     if GroupAssignment[S,C]!=0 
+%        then show(GroupAssignment[S,C]) 
+%        else 1
+%     endif ++ 
+%     if C = n_classes 
+%        then "}" 
+%        else "" 
+%     endif ++ 
+%     if C = n_classes /\ S = n_students then "" else "," endif | S in Student, C in Class] ++ ["];\n"]
+%     ["{" ++ show([if GroupAssignment[S,C]!=0 then show(GroupAssignment[S,C]) else "" endif | C in Class]) ++ if S<n_students then "}," else "}];\n" endif| S in Student]
+    ++ ["total_late_disappointment = " ++ show(sum([late_to_disappointment_multiplier*late_disappointment[S] | S in Student])) ++ ";\n"]
     ++ ["total_break_disappointment = " ++ show(sum([break_to_disappointment_multiplier*break_disappointment[S] | S in Student])) ++ ";\n"]
     ++ ["total_preference_disappointment = " ++ show(sum(preference_disappointment)) ++ ";\n"]
     ++ ["objective = " ++ show(objective) ++ ";\n"]
