@@ -189,8 +189,10 @@ output
 %     |S in Student, 
 %     D in Day, 
 %     T in start..end] ++
-    ["assignment = " ++ show([GroupAssignment[S, D] | S in Student, D in Day]) ++ ";\n"]
-    ++ ["total_late_disappointment = " ++ show(sum([late_to_disappointment_multiplier*late_disappointment[S] | S in Student])) ++ ";\n"]
+    ["assignment = ["] ++ 
+    [if C = 1 then "{" else " " endif ++ show(GroupAssignment[S,C]) ++ if C = n_classes then "}" else "" endif ++ 
+    if C = n_classes /\ S = n_students then "" else "," endif | S in Student, C in Class]
+    ++ ["];\ntotal_late_disappointment = " ++ show(sum([late_to_disappointment_multiplier*late_disappointment[S] | S in Student])) ++ ";\n"]
     ++ ["total_break_disappointment = " ++ show(sum([break_to_disappointment_multiplier*break_disappointment[S] | S in Student])) ++ ";\n"]
     ++ ["total_preference_disappointment = " ++ show(sum(preference_disappointment)) ++ ";\n"]
     ++ ["objective = " ++ show(objective) ++ ";\n"]
