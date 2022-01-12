@@ -1,10 +1,16 @@
 Dear Student,
 
-I'm happy to announce that you've managed to get **7** out of 9 points for this assignment.\
+I regret to inform you that you've received only **1** out of 9 points for this assignment.\
 There still exist some issues that should be addressed before the deadline (2048-01-01 00:00:00 GMT). For further details, please refer to the following list:
 
-<details><summary>enroll.mzn(data/trivial.dzn) &gt; model should correctly calculate disappointment related to being late...:</summary>- total late disappointment should equal 3, instead got 0;</details>
-<details><summary>enroll.mzn(data/trivial.dzn) &gt; model should correctly calculate the objective value...:</summary>- objective should equal 429, instead got -11;</details>
+<details><summary>enroll.mzn(data/trivial.dzn) &gt; got strange output from the model:</summary>Segmentation fault (core dumped)</details>
+<details><summary>enroll.mzn(data/trivial.dzn) &gt; got strange output from the model:</summary>Segmentation fault (core dumped)</details>
+<details><summary>enroll.mzn(data/trivial.dzn) &gt; got strange output from the model:</summary>Segmentation fault (core dumped)</details>
+<details><summary>enroll.mzn(data/trivial.dzn) &gt; got strange output from the model:</summary>Segmentation fault (core dumped)</details>
+<details><summary>enroll.mzn(data/trivial.dzn) &gt; got strange output from the model:</summary>Segmentation fault (core dumped)</details>
+<details><summary>enroll.mzn(data/trivial.dzn) &gt; got strange output from the model:</summary>Segmentation fault (core dumped)</details>
+<details><summary>enroll.mzn(data/trivial.dzn) &gt; got strange output from the model:</summary>Segmentation fault (core dumped)</details>
+<details><summary>enroll.mzn(data/trivial.dzn) &gt; got strange output from the model:</summary>Segmentation fault (core dumped)</details>
 
 -----------
 I remain your faithful servant\
