@@ -68,18 +68,18 @@ Finally, our objective is to :exclamation:**minimize sum o squared total disappo
 An example output is presented below:
 
 ```
-assignment = [[3, 4],[1, 6],[3, 5],[2, 4],[1]];
-total late disappointment = 3;
-total break disappointment = 0;
-total preference disappointment = 2;
+assignment = [{3, 4},{1, 6},{3, 5},{2, 4},{1}];
+total_late_disappointment = 3;
+total_break_disappointment = 0;
+total_preference_disappointment = 2;
 objective = 18;
 ```
 
 where:
-- `assignment = ` array of arrays containing groups assigned to the students, e.g. `assignment[0] = [3,4]` means that the student with index `0` has been assigned to groups `3` and `4` — notice that the last student in the example attends only a single class.
-- `total late disappointment = ` sum of **late disappointment[student]** (before multiplying by the corresponding weight);
-- `total break disappointment = ` sum of **break disappointment[student]** (before multiplying by the corresponding weight);
-- `total preference disappointment = ` sum of **preference disappointment[student]**;
+- `assignment = ` array of sets containing groups assigned to the students, e.g. `assignment[0] = {3,4}` means that the student with index `0` has been assigned to groups `3` and `4` — notice that the last student in the example attends only a single class.
+- `total_late_disappointment = ` sum of **late disappointment[student]** (before multiplying by the corresponding weight);
+- `total_break_disappointment = ` sum of **break disappointment[student]** (before multiplying by the corresponding weight);
+- `total_preference disappointment = ` sum of **preference disappointment[student]**;
 - `objective = ` objective value.
 
 The last four lines (objective components) will be useful for the grader script to check if your model calculates them correctly.

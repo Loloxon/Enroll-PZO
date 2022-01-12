@@ -1,10 +1,12 @@
 {
     "openFiles": [
         "enroll.mzn",
-        "data/trivial.dzn"
+        "data/trivial.dzn",
+        "data/competition.dzn"
     ],
-    "openTab": 0,
+    "openTab": 2,
     "projectFiles": [
+        "data/competition.dzn",
         "data/trivial.dzn",
         "enroll.mzn"
     ],
@@ -12,3 +14,4 @@
     "selectedBuiltinConfigVersion": "6.3.0",
     "version": 106
 }
+

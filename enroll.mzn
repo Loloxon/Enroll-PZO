@@ -148,36 +148,34 @@ constraint forall(S in Student)(late_disappointment[S] = sum(
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 %%do wyświetlania
-% constraint forall(S in Student, D in Day, T in start..end, C in Class)
-%   (if group_day[GroupAssignment[S,C]] == D /\
-%      T >= group_start[GroupAssignment[S,C]] /\ 
-%      T < group_start[GroupAssignment[S,C]] + class_duration[C] then Schedule[S,D,T] = GroupAssignment[S,C] endif);
-constraint forall(S in Student, C1,C2 in Class where C1<C2)(
-        if not xorall([GroupAssignment[S,C1] in group_cohabitats[G] /\ GroupAssignment[S,C2] in group_cohabitats[G] | G in GroupCohabitats])
-        then
-        forall(T1 in start..end, T2 in start..end)
-              (if T1 >= group_start[GroupAssignment[S,C1]] /\ T1 < group_start[GroupAssignment[S,C1]] + class_duration[C1]-1 
-                  then Schedule[S,group_day[GroupAssignment[S,C1]],T1,1] = GroupAssignment[S,C1] /\
-                  Schedule[S,group_day[GroupAssignment[S,C1]],T1,2] = GroupAssignment[S,C1]
-               endif /\
-               if T2 >= group_start[GroupAssignment[S,C2]] /\ T2 < group_start[GroupAssignment[S,C2]] + class_duration[C2]-1
-                  then Schedule[S,group_day[GroupAssignment[S,C2]],T2,1] = GroupAssignment[S,C2] /\
-                  Schedule[S,group_day[GroupAssignment[S,C2]],T2,2] = GroupAssignment[S,C2] 
-               endif)
-        else
-        forall(T1 in start..end, T2 in start..end)
-              (if T1 >= group_start[GroupAssignment[S,C1]] /\ T1 < group_start[GroupAssignment[S,C1]] + class_duration[C1]-1 
-                  then Schedule[S,group_day[GroupAssignment[S,C1]],T1,1] = GroupAssignment[S,C1] 
-               endif /\
-               if T2 >= group_start[GroupAssignment[S,C2]] /\ T2 < group_start[GroupAssignment[S,C2]] + class_duration[C2]-1
-                  then Schedule[S,group_day[GroupAssignment[S,C2]],T2,2] = GroupAssignment[S,C2] 
-               endif)
-        endif);
+% constraint forall(S in Student, C1,C2 in Class where C1<C2)(
+%         if not xorall([GroupAssignment[S,C1] in group_cohabitats[G] /\ GroupAssignment[S,C2] in group_cohabitats[G] | G in GroupCohabitats])
+%         then
+%         forall(T1 in start..end, T2 in start..end)
+%               (if T1 >= group_start[GroupAssignment[S,C1]] /\ T1 < group_start[GroupAssignment[S,C1]] + class_duration[C1]-1 
+%                   then Schedule[S,group_day[GroupAssignment[S,C1]],T1,1] = GroupAssignment[S,C1] /\
+%                   Schedule[S,group_day[GroupAssignment[S,C1]],T1,2] = GroupAssignment[S,C1]
+%                endif /\
+%                if T2 >= group_start[GroupAssignment[S,C2]] /\ T2 < group_start[GroupAssignment[S,C2]] + class_duration[C2]-1
+%                   then Schedule[S,group_day[GroupAssignment[S,C2]],T2,1] = GroupAssignment[S,C2] /\
+%                   Schedule[S,group_day[GroupAssignment[S,C2]],T2,2] = GroupAssignment[S,C2] 
+%                endif)
+%         else
+%         forall(T1 in start..end, T2 in start..end)
+%               (if T1 >= group_start[GroupAssignment[S,C1]] /\ T1 < group_start[GroupAssignment[S,C1]] + class_duration[C1]-1 
+%                   then Schedule[S,group_day[GroupAssignment[S,C1]],T1,1] = GroupAssignment[S,C1] 
+%                endif /\
+%                if T2 >= group_start[GroupAssignment[S,C2]] /\ T2 < group_start[GroupAssignment[S,C2]] + class_duration[C2]-1
+%                   then Schedule[S,group_day[GroupAssignment[S,C2]],T2,2] = GroupAssignment[S,C2] 
+%                endif)
+%         endif);
      
 %%%%%%%%%%%%%%%%%%%%%%%%%%
-var int : objective = sum(preference_disappointment) + sum([break_to_disappointment_multiplier*break_disappointment[S] | S in Student])
+var 0..infinity : objective = sum(preference_disappointment) + sum([break_to_disappointment_multiplier*break_disappointment[S] | S in Student])
                         + sum([late_to_disappointment_multiplier*late_disappointment[S] | S in Student]);
-solve minimize objective;
+% solve minimize objective;
+solve :: int_search(preference_disappointment, first_fail, indomain_min) minimize objective;
+
 
 % najpierw numer studenta
 % nastepnie dla kazdego studenta kolejne dni rozpisane na godziny
