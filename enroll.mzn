@@ -217,7 +217,7 @@ output
 %       [show([show([coexists[S,C1,C2] | C1, C2 in Class]) | S in Student]) ++ "\n"] ++ 
 %       [show([show([length_of_lessons2[S,C] | C in Class]) | S in Student]) ++ "\n"] ++
 %       [show([counted[S,C] | S in Student, C in Class]) ++ "\n"] ++ 
-      ["assignment = [" ++ join(",", ["{" ++ join(",", [show(g) |  g in Group where fix(GroupAssignmentB[s,g])]) ++ "}" | s in Student]) ++ "];\n"]
+      ["assignment = [" ++ join(",", ["{" ++ join(", ", [show(g) |  g in Group where fix(GroupAssignmentB[s,g])]) ++ "}" | s in Student]) ++ "];\n"]
 %     ++ ["being late table: " ++ show([late_disappointment[S] | S in Student]) ++ "\n"] 
     ++ ["total_late_disappointment = " ++ show(sum([late_to_disappointment_multiplier*late_disappointment[S] | S in Student])) ++ ";\n"]
 %     ++ ["time spent at univer: " ++ show([staying_at_uni[S,C] | S in Student, C in Class]) ++ "\n"]
