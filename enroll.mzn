@@ -204,10 +204,15 @@ constraint forall(S in Student)(late_disappointment[S] = sum(
 %         endif);
      
 %%%%%%%%%%%%%%%%%%%%%%%%%%
-var 0..MAX : objective = sum(preference_disappointment) + sum([break_to_disappointment_multiplier*break_disappointment[S] | S in Student])
-                        + sum([late_to_disappointment_multiplier*late_disappointment[S] | S in Student]);
+var 0..MAX : objective = sum([(preference_disappointment[S] + break_to_disappointment_multiplier*break_disappointment[S] + late_to_disappointment_multiplier*late_disappointment[S])*(preference_disappointment[S] + break_to_disappointment_multiplier*break_disappointment[S] + late_to_disappointment_multiplier*late_disappointment[S]) | S in Student]);
+% var 0..MAX : objective = sum(preference_disappointment) + break_to_disappointment_multiplier*sum(break_disappointment)
+%                         + late_to_disappointment_multiplier*sum(late_disappointment);
 % solve minimize objective;
-solve :: int_search(preference_disappointment, first_fail, indomain_min) minimize objective;
+solve :: int_search(preference_disappointment, smallest, indomain_min) minimize objective;
+% solve :: int_search(preference_disappointment, smallest, indomain_min) satisfy;
+% solve :: int_search(preference_disappointment, smallest, indomain_min) satisfy;
+% solve :: int_search(preference_disappointment, smallest, indomain_min) satisfy;
+% solve :: int_search(GroupAssignment, first_fail, indomain_min) satisfy;
 
 
 % najpierw numer studenta
