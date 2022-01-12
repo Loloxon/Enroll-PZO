@@ -180,24 +180,29 @@ solve :: int_search(preference_disappointment, first_fail, indomain_min) minimiz
 % najpierw numer studenta
 % nastepnie dla kazdego studenta kolejne dni rozpisane na godziny
  
-output ["Time:"] ++ [if T<100 then " " ++ show(T) ++ ";" else show(T) ++ ";" endif |T in start..end] ++ ["\n"] ++
-    [if T==start then show(S) ++ "." else "" endif ++
-    if T==start then show(D) ++ ":  " else "" endif ++
-    show(Schedule[S,D,T,1]) ++ "" ++ show(Schedule[S,D,T,2]) ++ if T == end then "\n" else "; " endif ++ 
-    if T == end /\ D==n_days then "\n" else "" endif
-    |S in Student, 
-    D in Day, 
-    T in start..end]
-    ++ ["bst pref: " ++ show([best_preferences[S,C] | S in Student, C in Class]) ++ "\n"] 
-    ++ ["got pref: " ++ show([got_preferences[S,C] | S in Student, C in Class]) ++ "\n"]
-    ++ ["pref dis: " ++ show(sum(preference_disappointment)) ++ "\n"]
-    ++ ["at uni  : " ++ show([staying_at_uni[S,C] | S in Student, C in Class]) ++ "\n"]
-    ++ ["length  : " ++ show([length_of_lessons[S,C] | S in Student, C in Class]) ++ "\n"] 
-    ++ ["break  s: " ++ show(sum([break_to_disappointment_multiplier*break_disappointment[S] | S in Student])) ++ "\n"]
-%     ++ [show([staying_at_uni[S,C] | S in Student, C in Class]) ++ "\n"]
-    ++ ["late tab: " ++ show([late_disappointment[S] | S in Student]) ++ "\n"] 
-    ++ ["late sum: " ++ show(sum([late_to_disappointment_multiplier*late_disappointment[S] | S in Student])) ++ "\n"]
-    ++ ["overall : " ++ show(objective) ++ "\n"]
+output 
+%     ["Time:"] ++ [if T<100 then " " ++ show(T) ++ ";" else show(T) ++ ";" endif |T in start..end] ++ ["\n"] ++
+%     [if T==start then show(S) ++ "." else "" endif ++
+%     if T==start then show(D) ++ ":  " else "" endif ++
+%     show(Schedule[S,D,T,1]) ++ "" ++ show(Schedule[S,D,T,2]) ++ if T == end then "\n" else "; " endif ++ 
+%     if T == end /\ D==n_days then "\n" else "" endif
+%     |S in Student, 
+%     D in Day, 
+%     T in start..end] ++
+    ["total_late_disappointment = " ++ show(sum([late_to_disappointment_multiplier*late_disappointment[S] | S in Student])) ++ "\n"]
+    ++ ["total_break_disappointment = " ++ show(sum([break_to_disappointment_multiplier*break_disappointment[S] | S in Student])) ++ "\n"]
+    ++ ["total_preference_disappointment = " ++ show(sum(preference_disappointment)) ++ "\n"]
+    ++ ["objective = " ++ show(objective) ++ "\n"]
+%     ++ ["bst pref: " ++ show([best_preferences[S,C] | S in Student, C in Class]) ++ "\n"] 
+%     ++ ["got pref: " ++ show([got_preferences[S,C] | S in Student, C in Class]) ++ "\n"]
+%     ++ ["pref dis: " ++ show(sum(preference_disappointment)) ++ "\n"]
+%     ++ ["at uni  : " ++ show([staying_at_uni[S,C] | S in Student, C in Class]) ++ "\n"]
+%     ++ ["length  : " ++ show([length_of_lessons[S,C] | S in Student, C in Class]) ++ "\n"] 
+%     ++ ["break  s: " ++ show(sum([break_to_disappointment_multiplier*break_disappointment[S] | S in Student])) ++ "\n"]
+% %     ++ [show([staying_at_uni[S,C] | S in Student, C in Class]) ++ "\n"]
+%     ++ ["late tab: " ++ show([late_disappointment[S] | S in Student]) ++ "\n"] 
+%     ++ ["late sum: " ++ show(sum([late_to_disappointment_multiplier*late_disappointment[S] | S in Student])) ++ "\n"]
+%     ++ ["overall : " ++ show(objective) ++ "\n"]
     
 
 
