@@ -208,7 +208,8 @@ var 0..MAX : objective = sum([(preference_disappointment[S] + break_to_disappoin
 % var 0..MAX : objective = sum(preference_disappointment) + break_to_disappointment_multiplier*sum(break_disappointment)
 %                         + late_to_disappointment_multiplier*sum(late_disappointment);
 % solve minimize objective;
-solve :: int_search(preference_disappointment, smallest, indomain_min) minimize objective;
+% solve :: int_search(preference_disappointment, smallest, indomain_min) minimize objective;
+solve :: int_search(GroupAssignment, first_fail, indomain_random) minimize objective;
 % solve :: int_search(preference_disappointment, smallest, indomain_min) satisfy;
 % solve :: int_search(preference_disappointment, smallest, indomain_min) satisfy;
 % solve :: int_search(preference_disappointment, smallest, indomain_min) satisfy;
