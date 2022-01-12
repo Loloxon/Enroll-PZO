@@ -65,7 +65,7 @@ array[Student, Day] of var 0..n_time_units_in_hour * 24 : length_of_lessons;
 array[Student, Class] of var 0..n_time_units_in_hour * 24 : length_of_lessons2; 
 %niezadowolenie z powodu spóźnień
 % array[Student, Day] of var set of int: lessons;
-array[Student] of var int: late_disappointment;
+array[Student] of var 0..infinity: late_disappointment;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % numery grup(w tym klas) dla danego studenta dla danego dnia dla danej godziny
 array[Student, Day, start..end, 1..2] of var 0..n_groups: Schedule; 
@@ -219,10 +219,10 @@ output
 %       [show([counted[S,C] | S in Student, C in Class]) ++ "\n"] ++ 
       ["assignment = [" ++ join(",", ["{" ++ join(", ", [show(g) |  g in Group where fix(GroupAssignmentB[s,g])]) ++ "}" | s in Student]) ++ "];\n"]
 %     ++ ["being late table: " ++ show([late_disappointment[S] | S in Student]) ++ "\n"] 
-    ++ ["total_late_disappointment = " ++ show(sum([late_to_disappointment_multiplier*late_disappointment[S] | S in Student])) ++ ";\n"]
+    ++ ["total_late_disappointment = " ++ show(sum([late_disappointment[S] | S in Student])) ++ ";\n"]
 %     ++ ["time spent at univer: " ++ show([staying_at_uni[S,C] | S in Student, C in Class]) ++ "\n"]
 %     ++ ["length of lessons:    " ++ show([length_of_lessons[S,C] | S in Student, C in Class]) ++ "\n"]     
-    ++ ["total_break_disappointment = " ++ show(sum([break_to_disappointment_multiplier*break_disappointment[S] | S in Student])) ++ ";\n"]
+    ++ ["total_break_disappointment = " ++ show(sum([break_disappointment[S] | S in Student])) ++ ";\n"]
 %     ++ ["best possible preferences: " ++ show([best_preferences[S,C] | S in Student, C in Class]) ++ "\n"] 
 %     ++ ["preferences which got:     " ++ show([got_preferences[S,C] | S in Student, C in Class]) ++ "\n"]
     ++ ["total_preference_disappointment = " ++ show(sum(preference_disappointment)) ++ ";\n"]
