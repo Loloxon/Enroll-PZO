@@ -189,10 +189,11 @@ output
 %     |S in Student, 
 %     D in Day, 
 %     T in start..end] ++
-    ["total_late_disappointment = " ++ show(sum([late_to_disappointment_multiplier*late_disappointment[S] | S in Student])) ++ "\n"]
-    ++ ["total_break_disappointment = " ++ show(sum([break_to_disappointment_multiplier*break_disappointment[S] | S in Student])) ++ "\n"]
-    ++ ["total_preference_disappointment = " ++ show(sum(preference_disappointment)) ++ "\n"]
-    ++ ["objective = " ++ show(objective) ++ "\n"]
+    ["assignment = " ++ show([GroupAssignment[S, D] | S in Student, D in Day]) ++ ";\n"]
+    ++ ["total_late_disappointment = " ++ show(sum([late_to_disappointment_multiplier*late_disappointment[S] | S in Student])) ++ ";\n"]
+    ++ ["total_break_disappointment = " ++ show(sum([break_to_disappointment_multiplier*break_disappointment[S] | S in Student])) ++ ";\n"]
+    ++ ["total_preference_disappointment = " ++ show(sum(preference_disappointment)) ++ ";\n"]
+    ++ ["objective = " ++ show(objective) ++ ";\n"]
 %     ++ ["bst pref: " ++ show([best_preferences[S,C] | S in Student, C in Class]) ++ "\n"] 
 %     ++ ["got pref: " ++ show([got_preferences[S,C] | S in Student, C in Class]) ++ "\n"]
 %     ++ ["pref dis: " ++ show(sum(preference_disappointment)) ++ "\n"]
