@@ -53,19 +53,20 @@ set of int: GroupCohabitats = 1..length(group_cohabitats);
 %time range
 int: start = min(group_start);
 int: end = max(group_start) + max(class_duration);
+int: MAX = 100000;
 
 %niezadowolenie z przydziału grup do zminimalizowania
 array[Student] of var Preference : preference_disappointment;  
 array[Student, Class] of var Preference : best_preferences;
 array[Student, Class] of var Preference : got_preferences;
 %niezadowolenie z powodu przerw
-array[Student] of var -infinity..infinity : break_disappointment;
-array[Student, Day] of var -n_time_units_in_hour * 24..n_time_units_in_hour * 24 : staying_at_uni;
+array[Student] of var 0..MAX : break_disappointment;
+array[Student, Day] of var 0..n_time_units_in_hour * 24 : staying_at_uni;
 array[Student, Day] of var 0..n_time_units_in_hour * 24 : length_of_lessons; 
 array[Student, Class] of var 0..n_time_units_in_hour * 24 : length_of_lessons2; 
 %niezadowolenie z powodu spóźnień
 % array[Student, Day] of var set of int: lessons;
-array[Student] of var 0..infinity: late_disappointment;
+array[Student] of var 0..MAX: late_disappointment;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % numery grup(w tym klas) dla danego studenta dla danego dnia dla danej godziny
 array[Student, Day, start..end, 1..2] of var 0..n_groups: Schedule; 
@@ -127,26 +128,26 @@ predicate overlap_in_time(var Group: G1, var Group: G2) = if group_day[G1] = gro
         else false
       endif;
 
-array[Student, Class, Class] of var bool: coexists;
+array[Student, Class, Class] of var 0..1: coexists;
 constraint forall(S in Student, C1, C2 in Class where GroupAssignment[S,C1]!=0 /\ GroupAssignment[S,C2]!=0)(
     if overlap_in_time(GroupAssignment[S,C1],GroupAssignment[S,C2]) 
-      then coexists[S,C1,C2]=true 
-      else coexists[S,C1,C2]=false 
+      then coexists[S,C1,C2]=1 
+      else coexists[S,C1,C2]=0 
     endif);
 
 array[Student, Class] of var 0..n_classes: counted;
 constraint forall(S in Student, C in Class)(counted[S,C] = count(C1 in Class)(coexists[S,C,C1]=true));
 constraint forall(S in Student, C in Class)(length_of_lessons2[S,C] = 
-    if forall(C1 in Class where C1!=C)(coexists[S,C,C1]=false) 
+    if forall(C1 in Class where C1!=C)(coexists[S,C,C1]=0) 
       then if GroupAssignment[S,C] = 0
               then 0
               else class_duration[C] 
             endif
-      else (max([group_start[GroupAssignment[S,C1]]+class_duration[C1] | C1 in Class where coexists[S,C,C1]=true]) - 
-           min([group_start[GroupAssignment[S,C1]] | C1 in Class where coexists[S,C,C1]=true])) 
+      else 'div'(max([group_start[GroupAssignment[S,C1]]+class_duration[C1] | C1 in Class where coexists[S,C,C1]=1]) - 
+           min([group_start[GroupAssignment[S,C1]] | C1 in Class where coexists[S,C,C1]=1]),counted[S,C]) 
 %            / count(C1 in Class)(coexists[S,C,C1]=true)
 %             /2
-            /counted[S,C]
+%             /counted[S,C]
     endif);
 constraint forall(S in Student, D in Day)(length_of_lessons[S,D] = sum([length_of_lessons2[S,C] | C in Class where group_day[GroupAssignment[S,C]]=D]));
 
@@ -203,7 +204,7 @@ constraint forall(S in Student)(late_disappointment[S] = sum(
 %         endif);
      
 %%%%%%%%%%%%%%%%%%%%%%%%%%
-var 0..infinity : objective = sum(preference_disappointment) + sum([break_to_disappointment_multiplier*break_disappointment[S] | S in Student])
+var 0..MAX : objective = sum(preference_disappointment) + sum([break_to_disappointment_multiplier*break_disappointment[S] | S in Student])
                         + sum([late_to_disappointment_multiplier*late_disappointment[S] | S in Student]);
 % solve minimize objective;
 solve :: int_search(preference_disappointment, first_fail, indomain_min) minimize objective;
