@@ -54,7 +54,6 @@ set of int: GroupCohabitats = 1..length(group_cohabitats);
 int: start = min(group_start);
 int: end = max(group_start) + max(class_duration);
 int: maxObjective = pow(max([student_prefers[s,g] | s in Student, g in Group]) + end*n_days*break_to_disappointment_multiplier + end*n_days*late_to_disappointment_multiplier,2)*n_students;
-% int: max_time = 
 
 %niezadowolenie z przydziału grup do zminimalizowania
 array[Student] of var Preference : preference_disappointment = [sum([best_preferences[S,C] - got_preferences[S,C]| C in Class]) | S in Student];  
@@ -64,7 +63,7 @@ array[Student, Class] of Preference : best_preferences = array2d(Student, Class,
     
 array[Student, Class] of var Preference : got_preferences = array2d(Student, Class, 
     [if GroupAssignment[S,C] != 0 then student_prefers[S,GroupAssignment[S,C]] else -1 endif | S in Student, C in Class]);
-%niezadowolenie z powodu przerw
+% niezadowolenie z powodu przerw
 array[Student] of var 0..end*n_days : break_disappointment = [sum([staying_at_uni[S,D] - length_of_lessons[S,D] | D in Day where staying_at_uni[S,D]>=0]) | S in Student];
 
 array[Student, Day] of var 0..end : staying_at_uni = array2d(Student, Day, 
@@ -76,6 +75,31 @@ array[Student, Day] of var 0..end : staying_at_uni = array2d(Student, Day,
                                                                        then group_start[GroupAssignment[S,C]] 
                                                                        else n_time_units_in_hour * 24 endif 
                                                                        | C in Class]),0) | S in Student, D in Day]);
+%%%%%%%%%%%%%% weird error and slower
+% array[Student, Day] of var 0..end : staying_at_uni = array2d(Student, Day, 
+%     [max(
+%     if forall(C in Class)(GroupAssignment[S,C] == 0 \/ group_day[GroupAssignment[S,C]] != D) 
+%       then 0
+%       else
+%         if exists(C1, C2 in Class where C1!=C2)
+%   ((GroupAssignment[S,C1] != 0 /\ group_day[GroupAssignment[S,C1]] == D) /\ (GroupAssignment[S,C2] != 0 /\ group_day[GroupAssignment[S,C2]] == D)) 
+%           then max([group_start[GroupAssignment[S,C]] + class_duration[C] 
+%                | C in Class where GroupAssignment[S,C] != 0 /\ group_day[GroupAssignment[S,C]] == D])
+%                - min([group_start[GroupAssignment[S,C]] 
+%                | C in Class where GroupAssignment[S,C] != 0 /\ group_day[GroupAssignment[S,C]] == D])
+%           else sum([
+%                 if GroupAssignment[S,C] != 0 /\ group_day[GroupAssignment[S,C]] == D 
+%                   then group_start[GroupAssignment[S,C]] + class_duration[C] 
+%                   else 0 
+%                 endif | C in Class]) 
+%                - sum([
+%                 if GroupAssignment[S,C] != 0 /\ group_day[GroupAssignment[S,C]] == D 
+%                   then group_start[GroupAssignment[S,C]] 
+%                   else 0 
+%                 endif | C in Class])
+%         endif
+%     endif, 0) | S in Student, D in Day]);
+
 array[Student, Day] of var 0..end : length_of_lessons; 
 array[Student, Class] of var 0..end : length_of_lessons2; 
 %niezadowolenie z powodu spóźnień
@@ -123,7 +147,10 @@ constraint forall(S in Student, C in Class)
 
 % grupy rozłączne
 constraint forall(S in Student, C1,C2 in Class where C1!=C2)
-  (if GroupAssignment[S,C1]!=0 /\ GroupAssignment[S,C2]!=0 /\ group_day[GroupAssignment[S,C1]] == group_day[GroupAssignment[S,C2]] /\ not xorall([GroupAssignment[S,C1] in group_cohabitats[G] /\ GroupAssignment[S,C2] in group_cohabitats[G] | G in GroupCohabitats])
+  (if GroupAssignment[S,C1]!=0 /\ GroupAssignment[S,C2]!=0 /\ group_day[GroupAssignment[S,C1]] == group_day[GroupAssignment[S,C2]]
+ /\ not exists(G in GroupCohabitats)({GroupAssignment[S,C1], GroupAssignment[S,C2]} = group_cohabitats[G] \/ {GroupAssignment[S,C2], GroupAssignment[S,C1]} = group_cohabitats[G])
+  
+%   not xorall([GroupAssignment[S,C1] in group_cohabitats[G] /\ GroupAssignment[S,C2] in group_cohabitats[G] | G in GroupCohabitats])
     then if student_can_teleport[S] 
       then group_start[GroupAssignment[S,C1]] + class_duration[C1] - being_late_treshold <= group_start[GroupAssignment[S,C2]] \/
           group_start[GroupAssignment[S,C2]] + class_duration[C2] - being_late_treshold <= group_start[GroupAssignment[S,C1]] 
@@ -162,13 +189,15 @@ constraint forall(S in Student, C1, C2 in Class)(
 array[Student, Class] of var 0..n_classes: counted;
 constraint forall(S in Student, C in Class)(counted[S,C] = count(C1 in Class)(coexists[S,C,C1]=true));
 constraint forall(S in Student, C in Class)(length_of_lessons2[S,C] = 
-    if forall(C1 in Class where C1!=C)(coexists[S,C,C1]=false) 
+    if exists(C1 in Class where C1!=C)(coexists[S,C,C1])=false 
       then if GroupAssignment[S,C] = 0
               then 0
               else class_duration[C] 
             endif
-      else 'div'(max([group_start[GroupAssignment[S,C1]]+class_duration[C1] | C1 in Class where coexists[S,C,C1]=true]) - 
-           min([group_start[GroupAssignment[S,C1]] | C1 in Class where coexists[S,C,C1]=true]),counted[S,C]) 
+      else 'div'(
+           max([group_start[GroupAssignment[S,C1]]+class_duration[C1] | C1 in Class where coexists[S,C,C1]=true]) - 
+           min([group_start[GroupAssignment[S,C1]] | C1 in Class where coexists[S,C,C1]=true]),
+           counted[S,C]) 
     endif);
     
 constraint forall(S in Student, D in Day)(length_of_lessons[S,D] = sum([if GroupAssignment[S,C]!=0 /\ group_day[GroupAssignment[S,C]]=D then length_of_lessons2[S,C] else 0 endif | C in Class]));
@@ -201,7 +230,6 @@ solve :: seq_search([
         minimize objective;
         
 % solve satisfy;
-
 
 % najpierw numer studenta
 % nastepnie dla kazdego studenta kolejne dni rozpisane na godziny
