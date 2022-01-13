@@ -1,16 +1,7 @@
 Dear Student,
 
-I regret to inform you that you've received only **1** out of 9 points for this assignment.\
-There still exist some issues that should be addressed before the deadline (2048-01-01 00:00:00 GMT). For further details, please refer to the following list:
-
-<details><summary>enroll.mzn(data/trivial.dzn): model should find the optimal solution (it has not)</summary></details>
-<details><summary>enroll.mzn(data/trivial.dzn): model should find the optimal solution (it has not)</summary></details>
-<details><summary>enroll.mzn(data/trivial.dzn): model should find the optimal solution (it has not)</summary></details>
-<details><summary>enroll.mzn(data/trivial.dzn): model should find the optimal solution (it has not)</summary></details>
-<details><summary>enroll.mzn(data/trivial.dzn): model should find the optimal solution (it has not)</summary></details>
-<details><summary>enroll.mzn(data/trivial.dzn): model should find the optimal solution (it has not)</summary></details>
-<details><summary>enroll.mzn(data/trivial.dzn): model should find the optimal solution (it has not)</summary></details>
-<details><summary>enroll.mzn(data/trivial.dzn): model should find the optimal solution (it has not)</summary></details>
+I'm happy to announce that you've managed to get **9** out of 9 points for this assignment.\
+You should be proud of yourself; therefore please deliver yourself a [self-five](https://youtu.be/kMUkzWO8viY) on my behalf as I am not a corporeal being.
 
 -----------
 I remain your faithful servant\
