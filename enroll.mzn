@@ -53,15 +53,22 @@ set of int: GroupCohabitats = 1..length(group_cohabitats);
 %time range
 int: start = min(group_start);
 int: end = max(group_start) + max(class_duration);
-int: MAX = 1000;
+int: maxObjective = pow(max([student_prefers[s,g] | s in Student, g in Group]) + end*n_days*break_to_disappointment_multiplier + end*n_days*late_to_disappointment_multiplier,2)*n_students;
+% int: max_time = 
 
 %niezadowolenie z przydziału grup do zminimalizowania
 array[Student] of var Preference : preference_disappointment = [sum([best_preferences[S,C] - got_preferences[S,C]| C in Class]) | S in Student];  
-array[Student, Class] of var Preference : best_preferences = array2d(Student, Class, [max([if group_class[G] = C then student_prefers[S,G] else -1 endif | G in Group]) | S in Student, C in Class]);
-array[Student, Class] of var Preference : got_preferences = array2d(Student, Class, [if GroupAssignment[S,C] != 0 then student_prefers[S,GroupAssignment[S,C]] else -1 endif | S in Student, C in Class]);
+
+array[Student, Class] of Preference : best_preferences = array2d(Student, Class, 
+    [max([if group_class[G] = C then student_prefers[S,G] else -1 endif | G in Group]) | S in Student, C in Class]);
+    
+array[Student, Class] of var Preference : got_preferences = array2d(Student, Class, 
+    [if GroupAssignment[S,C] != 0 then student_prefers[S,GroupAssignment[S,C]] else -1 endif | S in Student, C in Class]);
 %niezadowolenie z powodu przerw
-array[Student] of var 0..n_time_units_in_hour * 24 * n_days : break_disappointment = [sum([staying_at_uni[S,D] - length_of_lessons[S,D] | D in Day where staying_at_uni[S,D]>=0]) | S in Student];
-array[Student, Day] of var 0..n_time_units_in_hour * 24 : staying_at_uni = array2d(Student, Day, [max(max([if GroupAssignment[S,C] != 0 /\ group_day[GroupAssignment[S,C]] == D
+array[Student] of var 0..end*n_days : break_disappointment = [sum([staying_at_uni[S,D] - length_of_lessons[S,D] | D in Day where staying_at_uni[S,D]>=0]) | S in Student];
+
+array[Student, Day] of var 0..end : staying_at_uni = array2d(Student, Day, 
+    [max(max([if GroupAssignment[S,C] != 0 /\ group_day[GroupAssignment[S,C]] == D
                                                                       then group_start[GroupAssignment[S,C]] + class_duration[C] 
                                                                       else 0 endif 
                                                                       | C in Class])
@@ -69,12 +76,24 @@ array[Student, Day] of var 0..n_time_units_in_hour * 24 : staying_at_uni = array
                                                                        then group_start[GroupAssignment[S,C]] 
                                                                        else n_time_units_in_hour * 24 endif 
                                                                        | C in Class]),0) | S in Student, D in Day]);
-array[Student, Day] of var 0..n_time_units_in_hour * 24 : length_of_lessons; 
-array[Student, Class] of var 0..n_time_units_in_hour * 24 : length_of_lessons2; 
+array[Student, Day] of var 0..end : length_of_lessons; 
+array[Student, Class] of var 0..end : length_of_lessons2; 
 %niezadowolenie z powodu spóźnień
 % array[Student, Day] of var set of int: lessons;
-array[Student] of var 0..n_time_units_in_hour * 24: late_disappointment = [sum(
-                                                          [if group_day[GroupAssignment[S,C1]] == group_day[GroupAssignment[S,C2]] /\
+array[Student, Class] of var 0..n_groups: GroupAssignment = array2d(Student, Class, 
+[if forall(G in Group)(student_prefers[S,G] == -1 \/ group_class[G] != C) 
+    then 0   
+    else _ endif | S in Student, C in Class]);
+
+constraint forall(S in Student, C in Class)(GroupAssignment[S,C]=0 \/ group_class[GroupAssignment[S,C]]=C);
+
+include "alldifferent.mzn";
+constraint forall(S in Student)(if forall(C1, C2 in Class where C1!=C2)(not (GroupAssignment[S,C1]=0 /\ GroupAssignment[S,C2]=0))
+    then alldifferent(C in Class)(GroupAssignment[S,C])
+    endif);
+
+array[Student] of var 0..end*n_days: late_disappointment = [sum(
+                                                          [if GroupAssignment[S,C1]!=0 /\ GroupAssignment[S,C2] !=0 /\ group_day[GroupAssignment[S,C1]] == group_day[GroupAssignment[S,C2]] /\
                                   not xorall([GroupAssignment[S,C1] in group_cohabitats[G] /\ GroupAssignment[S,C2] in group_cohabitats[G] | G in GroupCohabitats])
                                                           then 
                                                             if group_start[GroupAssignment[S,C1]] < group_start[GroupAssignment[S,C2]]
@@ -95,18 +114,16 @@ array[Student] of var 0..n_time_units_in_hour * 24: late_disappointment = [sum(
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % numery grup(w tym klas) dla danego studenta dla danego dnia dla danej godziny
 %przydział grup dla przedmiotów do studentów
-array[Student, Class] of var 0..n_groups: GroupAssignment;
 
 % constraints
 % studenci przypisanie do grup
 constraint forall(S in Student, C in Class)
-  (if forall(G in Group)(student_prefers[S,G] == -1 \/ group_class[G] != C) 
-    then GroupAssignment[S,C] = 0   
-    else group_class[GroupAssignment[S,C]] == C /\ student_prefers[S,GroupAssignment[S,C]] != -1 endif);  
+  (if not forall(G in Group)(student_prefers[S,G] == -1 \/ group_class[G] != C) 
+    then group_class[GroupAssignment[S,C]] == C /\ student_prefers[S,GroupAssignment[S,C]] != -1 endif);  
 
 % grupy rozłączne
 constraint forall(S in Student, C1,C2 in Class where C1!=C2)
-  (if group_day[GroupAssignment[S,C1]] == group_day[GroupAssignment[S,C2]] /\ not xorall([GroupAssignment[S,C1] in group_cohabitats[G] /\ GroupAssignment[S,C2] in group_cohabitats[G] | G in GroupCohabitats])
+  (if GroupAssignment[S,C1]!=0 /\ GroupAssignment[S,C2]!=0 /\ group_day[GroupAssignment[S,C1]] == group_day[GroupAssignment[S,C2]] /\ not xorall([GroupAssignment[S,C1] in group_cohabitats[G] /\ GroupAssignment[S,C2] in group_cohabitats[G] | G in GroupCohabitats])
     then if student_can_teleport[S] 
       then group_start[GroupAssignment[S,C1]] + class_duration[C1] - being_late_treshold <= group_start[GroupAssignment[S,C2]] \/
           group_start[GroupAssignment[S,C2]] + class_duration[C2] - being_late_treshold <= group_start[GroupAssignment[S,C1]] 
@@ -136,8 +153,8 @@ predicate overlap_in_time(var Group: G1, var Group: G2) = if group_day[G1] = gro
       endif;
 
 array[Student, Class, Class] of var bool: coexists;
-constraint forall(S in Student, C1, C2 in Class where GroupAssignment[S,C1]!=0 /\ GroupAssignment[S,C2]!=0)(
-    if overlap_in_time(GroupAssignment[S,C1],GroupAssignment[S,C2]) 
+constraint forall(S in Student, C1, C2 in Class)(
+    if GroupAssignment[S,C1]!=0 /\ GroupAssignment[S,C2]!=0 /\ overlap_in_time(GroupAssignment[S,C1],GroupAssignment[S,C2]) 
       then coexists[S,C1,C2]=true
       else coexists[S,C1,C2]=false
     endif);
@@ -153,12 +170,13 @@ constraint forall(S in Student, C in Class)(length_of_lessons2[S,C] =
       else 'div'(max([group_start[GroupAssignment[S,C1]]+class_duration[C1] | C1 in Class where coexists[S,C,C1]=true]) - 
            min([group_start[GroupAssignment[S,C1]] | C1 in Class where coexists[S,C,C1]=true]),counted[S,C]) 
     endif);
-constraint forall(S in Student, D in Day)(length_of_lessons[S,D] = sum([length_of_lessons2[S,C] | C in Class where group_day[GroupAssignment[S,C]]=D]));
+    
+constraint forall(S in Student, D in Day)(length_of_lessons[S,D] = sum([if GroupAssignment[S,C]!=0 /\ group_day[GroupAssignment[S,C]]=D then length_of_lessons2[S,C] else 0 endif | C in Class]));
 
 %liczenie break_dissapointment
 %liczenie late_disappointment
 %%%%%%%%%%%%%%%%%%%%%%%%%%
-var 0..MAX : objective = sum([(preference_disappointment[S] + break_to_disappointment_multiplier*break_disappointment[S] + late_to_disappointment_multiplier*late_disappointment[S])*(preference_disappointment[S] + break_to_disappointment_multiplier*break_disappointment[S] + late_to_disappointment_multiplier*late_disappointment[S]) | S in Student]);
+var 0..maxObjective : objective = sum([pow(preference_disappointment[S] + break_to_disappointment_multiplier*break_disappointment[S] + late_to_disappointment_multiplier*late_disappointment[S],2) | S in Student]);
 % var 0..MAX : objective = sum(preference_disappointment) + break_to_disappointment_multiplier*sum(break_disappointment)
 %                         + late_to_disappointment_multiplier*sum(late_disappointment);
 % solve minimize objective;
