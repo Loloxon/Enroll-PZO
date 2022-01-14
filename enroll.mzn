@@ -194,17 +194,41 @@ constraint forall(S in Student, C1, C2 in Class)(
       else coexists[S,C1,C2]=false
     endif);
 
-array[Student, Class] of var 0..n_classes: counted;
-constraint forall(S in Student, C in Class)(counted[S,C] = count(C1 in Class)(coexists[S,C,C1]=true));
+array[Student, Class] of var 1..n_classes: counted = array2d(Student, Class, 
+[count(C1 in Class)(coexists[S,C,C1]) | S in Student, C in Class]);
+% constraint forall(S in Student, C in Class)(counted[S,C] = count(C1 in Class)(coexists[S,C,C1]=true));
+% constraint forall(S in Student, C1, C2 in Class where C1!=C2 /\ GroupAssignment[S,C1]!=0 /\ GroupAssignment[S,C2]!=0 /\ overlap_in_time(GroupAssignment[S,C1],GroupAssignment[S,C2]))(
+%     length_of_lessons[S,group_day[GroupAssignment[S,C1]]]=
+%           ceil_div(
+%           max([group_start[GroupAssignment[S,C1]]+class_duration[C1] |C1 in Class where GroupAssignment[S,C1]!=0 /\ coexists[S,C1,C2]]) - 
+%           min([group_start[GroupAssignment[S,C1]] |C1 in Class where GroupAssignment[S,C1]!=0 /\ coexists[S,C1,C2]]),
+%           counted[S,C1])
+% );
+
+% constraint forall(S in Student, D in Day)(length_of_lessons[S,D] = 
+%   sum(
+%     ['div'(max([group_start[GroupAssignment[S,C1]]+class_duration[C1] 
+%          |C1 in Class where GroupAssignment[S,C1]!=0 /\ coexists[S,C,C1]]) - 
+%      min([group_start[GroupAssignment[S,C1]]
+%          |C1 in Class where GroupAssignment[S,C1]!=0 /\ coexists[S,C,C1]]),counted[S,C])
+%      |C in Class where GroupAssignment[S,C]!=0 /\ group_day[GroupAssignment[S,C]]=D])
+% );
+
 constraint forall(S in Student, C in Class)(length_of_lessons2[S,C] = 
     if exists(C1 in Class where C1!=C)(coexists[S,C,C1])=false 
       then if GroupAssignment[S,C] = 0
               then 0
               else class_duration[C] 
             endif
-      else 'div'(
-           max([if GroupAssignment[S,C1]!=0 then group_start[GroupAssignment[S,C1]]+class_duration[C1] else 0 endif| C1 in Class where coexists[S,C,C1]=true]) - 
-           min([if GroupAssignment[S,C1]!=0 then group_start[GroupAssignment[S,C1]] else 10000 endif| C1 in Class where coexists[S,C,C1]=true]),
+      else ceil_div(
+           max([if GroupAssignment[S,C1]!=0 
+                 then group_start[GroupAssignment[S,C1]]+class_duration[C1] 
+                 else 0
+                endif| C1 in Class where coexists[S,C,C1]=true]) - 
+           min([if GroupAssignment[S,C1]!=0 
+                 then group_start[GroupAssignment[S,C1]] 
+                 else end 
+                endif| C1 in Class where coexists[S,C,C1]=true]),
            counted[S,C])
     endif);
     
@@ -229,12 +253,13 @@ var 0..maxObjective : objective = sum([pow(ceil_div(student_break_importance[S] 
 %              int_search(s, smallest, indomain_min),
 %              int_search([end], input_order, indomain_min)])
 %       minimize end;
-solve :: seq_search([
-        int_search(GroupAssignment, dom_w_deg, indomain_random),
-        int_search(got_preferences, dom_w_deg, indomain_random),
-        int_search(preference_disappointment, dom_w_deg, indomain_random),
-        int_search(break_disappointment, dom_w_deg, indomain_random),
-        ])
+solve 
+%       :: seq_search([
+%         int_search(GroupAssignment, dom_w_deg, indomain_random),
+%         int_search(got_preferences, dom_w_deg, indomain_random),
+%         int_search(preference_disappointment, dom_w_deg, indomain_random),
+%         int_search(break_disappointment, dom_w_deg, indomain_random),
+%         ])
 %         satisfy;
         minimize objective;
         
