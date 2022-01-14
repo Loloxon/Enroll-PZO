@@ -5,14 +5,8 @@ n_groups = 6;
 n_locations = 2;
 n_time_units_in_hour = 12;
 
-being_late_treshold = 3;
-late_to_disappointment_multiplier = 2;
-break_to_disappointment_multiplier = 1;
-
-student_can_teleport = [false, false, true, false, true];
-student_loves_breaks = [false, true, true, false, false];
+student_break_importance = [1, 0, 0, 3, 4];
 student_prefers = array2d(Student, Group, [
-%   1, -1, -1, 6, -1, -1,
   -1, 4, 8, 6, 2, 4,
   2, 2, 2, 2, 0, 6,
   7, 3, 6, 1, 7, 3,
