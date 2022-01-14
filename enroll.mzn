@@ -75,13 +75,13 @@ array[Student] of var 0..24*n_days: normalized_break_disappointment =
 
 array[Student, Day] of var 0..end : staying_at_uni = array2d(Student, Day, 
     [max(max([if GroupAssignment[S,C] != 0 /\ group_day[GroupAssignment[S,C]] == D
-                                                                      then group_start[GroupAssignment[S,C]] + class_duration[C] 
-                                                                      else 0 endif 
-                                                                      | C in Class])
-                                                               - min([if GroupAssignment[S,C] != 0 /\ group_day[GroupAssignment[S,C]] == D 
-                                                                       then group_start[GroupAssignment[S,C]] 
-                                                                       else n_time_units_in_hour * 24 endif 
-                                                                       | C in Class]),0) | S in Student, D in Day]);
+                                       then group_start[GroupAssignment[S,C]] + class_duration[C] 
+                                       else 0 endif 
+                        | C in Class])
+     - min([if GroupAssignment[S,C] != 0 /\ group_day[GroupAssignment[S,C]] == D 
+                                       then group_start[GroupAssignment[S,C]] 
+                                       else n_time_units_in_hour * 24 endif 
+                        | C in Class]),0) | S in Student, D in Day]);
 %%%%%%%%%%%%%% weird error and slower
 % array[Student, Day] of var 0..end : staying_at_uni = array2d(Student, Day, 
 %     [max(
@@ -155,7 +155,9 @@ constraint forall(S in Student, C in Class)
 % grupy rozłączne
 constraint forall(S in Student, C1, C2 in Class where C1 != C2 /\ GroupAssignment[S,C1]!=0 /\ GroupAssignment[S,C2]!=0)(
     not overlap_in_time(GroupAssignment[S,C1],GroupAssignment[S,C2]) \/ 
-    exists(G in GroupCohabitats)({GroupAssignment[S,C1], GroupAssignment[S,C2]} = group_cohabitats[G] \/ {GroupAssignment[S,C2], GroupAssignment[S,C1]} = group_cohabitats[G]));
+    exists(G in GroupCohabitats)
+    ({GroupAssignment[S,C1], GroupAssignment[S,C2]} = group_cohabitats[G] \/
+     {GroupAssignment[S,C2], GroupAssignment[S,C1]} = group_cohabitats[G]));
 %%%old version
 % constraint forall(S in Student, C1,C2 in Class where C1!=C2)
 %   (if GroupAssignment[S,C1]!=0 /\ GroupAssignment[S,C2]!=0 /\ group_day[GroupAssignment[S,C1]] == group_day[GroupAssignment[S,C2]]
