@@ -150,14 +150,18 @@ constraint forall(S in Student, C in Class)
     then group_class[GroupAssignment[S,C]] == C /\ student_prefers[S,GroupAssignment[S,C]] != -1 endif);  
 
 % grupy rozłączne
-constraint forall(S in Student, C1,C2 in Class where C1!=C2)
-  (if GroupAssignment[S,C1]!=0 /\ GroupAssignment[S,C2]!=0 /\ group_day[GroupAssignment[S,C1]] == group_day[GroupAssignment[S,C2]]
- /\ not exists(G in GroupCohabitats)({GroupAssignment[S,C1], GroupAssignment[S,C2]} = group_cohabitats[G] \/ {GroupAssignment[S,C2], GroupAssignment[S,C1]} = group_cohabitats[G])
+constraint forall(S in Student, C1, C2 in Class where C1 != C2 /\ GroupAssignment[S,C1]!=0 /\ GroupAssignment[S,C2]!=0)(
+    not overlap_in_time(GroupAssignment[S,C1],GroupAssignment[S,C2]) \/ 
+    exists(G in GroupCohabitats)({GroupAssignment[S,C1], GroupAssignment[S,C2]} = group_cohabitats[G] \/ {GroupAssignment[S,C2], GroupAssignment[S,C1]} = group_cohabitats[G]));
+%%%old version
+% constraint forall(S in Student, C1,C2 in Class where C1!=C2)
+%   (if GroupAssignment[S,C1]!=0 /\ GroupAssignment[S,C2]!=0 /\ group_day[GroupAssignment[S,C1]] == group_day[GroupAssignment[S,C2]]
+%  /\ not exists(G in GroupCohabitats)({GroupAssignment[S,C1], GroupAssignment[S,C2]} = group_cohabitats[G] \/ {GroupAssignment[S,C2], GroupAssignment[S,C1]} = group_cohabitats[G])
   
-%   not xorall([GroupAssignment[S,C1] in group_cohabitats[G] /\ GroupAssignment[S,C2] in group_cohabitats[G] | G in GroupCohabitats])
-    then group_start[GroupAssignment[S,C1]] + class_duration[C1] + travel_duration[GroupAssignment[S,C1],GroupAssignment[S,C2]] <= group_start[GroupAssignment[S,C2]] \/
-          group_start[GroupAssignment[S,C2]] + class_duration[C2] + travel_duration[GroupAssignment[S,C2],GroupAssignment[S,C1]] <= group_start[GroupAssignment[S,C1]] 
-     endif);
+% %   not xorall([GroupAssignment[S,C1] in group_cohabitats[G] /\ GroupAssignment[S,C2] in group_cohabitats[G] | G in GroupCohabitats])
+%     then group_start[GroupAssignment[S,C1]] + class_duration[C1] + travel_duration[GroupAssignment[S,C1],GroupAssignment[S,C2]] <= group_start[GroupAssignment[S,C2]] \/
+%           group_start[GroupAssignment[S,C2]] + class_duration[C2] + travel_duration[GroupAssignment[S,C2],GroupAssignment[S,C1]] <= group_start[GroupAssignment[S,C1]] 
+%      endif);
 
 %grupy nie przekraczaja liczebnosci
 constraint forall(G in Group)(count(col(GroupAssignment,group_class[G]),G)<=class_size[group_class[G]]);
@@ -182,7 +186,7 @@ predicate overlap_in_time(var Group: G1, var Group: G2) = if group_day[G1] = gro
 
 array[Student, Class, Class] of var bool: coexists;
 constraint forall(S in Student, C1, C2 in Class)(
-    if GroupAssignment[S,C1]!=0 /\ GroupAssignment[S,C2]!=0 /\ overlap_in_time(GroupAssignment[S,C1],GroupAssignment[S,C2]) 
+    if C1=C2 \/ GroupAssignment[S,C1]!=0 /\ GroupAssignment[S,C2]!=0 /\ overlap_in_time(GroupAssignment[S,C1],GroupAssignment[S,C2])
       then coexists[S,C1,C2]=true
       else coexists[S,C1,C2]=false
     endif);
@@ -196,9 +200,9 @@ constraint forall(S in Student, C in Class)(length_of_lessons2[S,C] =
               else class_duration[C] 
             endif
       else 'div'(
-           max([group_start[GroupAssignment[S,C1]]+class_duration[C1] | C1 in Class where coexists[S,C,C1]=true]) - 
-           min([group_start[GroupAssignment[S,C1]] | C1 in Class where coexists[S,C,C1]=true]),
-           counted[S,C]) 
+           max([if GroupAssignment[S,C1]!=0 then group_start[GroupAssignment[S,C1]]+class_duration[C1] else 0 endif| C1 in Class where coexists[S,C,C1]=true]) - 
+           min([if GroupAssignment[S,C1]!=0 then group_start[GroupAssignment[S,C1]] else 10000 endif| C1 in Class where coexists[S,C,C1]=true]),
+           counted[S,C])
     endif);
     
 constraint forall(S in Student, D in Day)(length_of_lessons[S,D] = sum([if GroupAssignment[S,C]!=0 /\ group_day[GroupAssignment[S,C]]=D then length_of_lessons2[S,C] else 0 endif | C in Class]));
@@ -242,8 +246,8 @@ output
 %       [show([show([length_of_lessons2[S,C] | C in Class]) | S in Student]) ++ "\n"] ++
 %       [show([counted[S,C] | S in Student, C in Class]) ++ "\n"] ++ 
       ["assignment = [" ++ join(",", ["{" ++ join(", ", [show(g) |  g in Group where fix(GroupAssignmentB[s,g])]) ++ "}" | s in Student]) ++ "];\n"]
-%     ++ ["time spent at univer: " ++ show([staying_at_uni[S,C] | S in Student, C in Class]) ++ "\n"]
-%     ++ ["length of lessons:    " ++ show([length_of_lessons[S,C] | S in Student, C in Class]) ++ "\n"]     
+    ++ ["time spent at univer: " ++ show([staying_at_uni[S,D] | S in Student, D in Day]) ++ "\n"]
+    ++ ["length of lessons:    " ++ show([length_of_lessons[S,D] | S in Student, D in Day]) ++ "\n"]     
     ++ ["total_break_disappointment = " ++ show(sum([break_disappointment[S] | S in Student])) ++ ";\n"]
 %     ++ ["best possible preferences: " ++ show([best_preferences[S,C] | S in Student, C in Class]) ++ "\n"] 
 %     ++ ["preferences which got:     " ++ show([got_preferences[S,C] | S in Student, C in Class]) ++ "\n"]
