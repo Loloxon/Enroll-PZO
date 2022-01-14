@@ -70,6 +70,9 @@ array[Student, Class] of var Preference : got_preferences = array2d(Student, Cla
 % niezadowolenie z powodu przerw
 array[Student] of var 0..end*n_days : break_disappointment = [sum([staying_at_uni[S,D] - length_of_lessons[S,D] | D in Day where staying_at_uni[S,D]>=0]) | S in Student];
 
+array[Student] of var 0..24*n_days: normalized_break_disappointment =
+[ceil_div(break_disappointment[S],n_time_units_in_hour)| S in Student];
+
 array[Student, Day] of var 0..end : staying_at_uni = array2d(Student, Day, 
     [max(max([if GroupAssignment[S,C] != 0 /\ group_day[GroupAssignment[S,C]] == D
                                                                       then group_start[GroupAssignment[S,C]] + class_duration[C] 
@@ -212,7 +215,7 @@ constraint forall(S in Student, D in Day)(length_of_lessons[S,D] = sum([if Group
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%% old one
 % var 0..maxObjective : objective = sum([pow(preference_disappointment[S] + break_to_disappointment_multiplier*break_disappointment[S] + late_to_disappointment_multiplier*late_disappointment[S],2) | S in Student]);
-var 0..maxObjective : objective = sum([pow(ceil_div(student_break_importance[S] * break_disappointment[S] + (10 - student_break_importance[S]) * preference_disappointment[S],10),2) | S in Student]);
+var 0..maxObjective : objective = sum([pow(ceil_div(student_break_importance[S] * normalized_break_disappointment[S] + (10 - student_break_importance[S]) * preference_disappointment[S],10),2) | S in Student]);
 % var 0..MAX : objective = sum(preference_disappointment) + break_to_disappointment_multiplier*sum(break_disappointment)
 %                         + late_to_disappointment_multiplier*sum(late_disappointment);
 % solve minimize objective;
