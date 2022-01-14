@@ -249,9 +249,9 @@ output
 %       [show([show([length_of_lessons2[S,C] | C in Class]) | S in Student]) ++ "\n"] ++
 %       [show([counted[S,C] | S in Student, C in Class]) ++ "\n"] ++ 
       ["assignment = [" ++ join(",", ["{" ++ join(", ", [show(g) |  g in Group where fix(GroupAssignmentB[s,g])]) ++ "}" | s in Student]) ++ "];\n"]
-    ++ ["time spent at univer: " ++ show([staying_at_uni[S,D] | S in Student, D in Day]) ++ "\n"]
-    ++ ["length of lessons:    " ++ show([length_of_lessons[S,D] | S in Student, D in Day]) ++ "\n"]     
-    ++ ["total_break_disappointment = " ++ show(sum([break_disappointment[S] | S in Student])) ++ ";\n"]
+%     ++ ["time spent at univer: " ++ show([staying_at_uni[S,D] | S in Student, D in Day]) ++ "\n"]
+%     ++ ["length of lessons:    " ++ show([length_of_lessons[S,D] | S in Student, D in Day]) ++ "\n"]     
+    ++ ["total_break_disappointment = " ++ show(sum([normalized_break_disappointment[S] | S in Student])) ++ ";\n"]
 %     ++ ["best possible preferences: " ++ show([best_preferences[S,C] | S in Student, C in Class]) ++ "\n"] 
 %     ++ ["preferences which got:     " ++ show([got_preferences[S,C] | S in Student, C in Class]) ++ "\n"]
     ++ ["total_preference_disappointment = " ++ show(sum(preference_disappointment)) ++ ";\n"]
