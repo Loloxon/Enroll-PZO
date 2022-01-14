@@ -2,12 +2,14 @@
     "openFiles": [
         "enroll.mzn",
         "data/trivial.dzn",
-        "data/competition.dzn"
+        "data/competition.dzn",
+        "data/trivial_break.dzn"
     ],
-    "openTab": 2,
+    "openTab": 0,
     "projectFiles": [
         "data/competition.dzn",
         "data/trivial.dzn",
+        "data/trivial_break.dzn",
         "enroll.mzn"
     ],
     "selectedBuiltinConfigId": "org.gecode.gecode",

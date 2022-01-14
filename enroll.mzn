@@ -14,11 +14,11 @@ int: n_time_units_in_hour;
 %wartość oznaczająca nie chodzenie na przedmiot
 int: exclusion = -1;
 %% nieprzekraczalne 
-int: being_late_treshold;
+% int: being_late_treshold;
 %% mnożymy ilość minut razy late_to_disappointment_multiplier 
-int: late_to_disappointment_multiplier;
+% int: late_to_disappointment_multiplier;
 %% przerwa w minutach razy break_to_disappointment_multiplier 
-int: break_to_disappointment_multiplier;
+% int: break_to_disappointment_multiplier;
 
 %sety zrobione z wartości wyżej
 set of int: Student = 1..n_students;
@@ -32,9 +32,13 @@ set of int: Time = 0..n_time_units_in_hour * 24;
 set of int: Preference = exclusion..max([student_prefers[s,g] | s in Student, g in Group]);
 
 %info o studentach
-array[Student] of bool: student_can_teleport;
-array[Student] of bool: student_loves_breaks;
+% array[Student] of bool: student_can_teleport;
+% array[Student] of bool: student_loves_breaks;
+array[Student] of 1..5: student_break_importance;
 array[Student, Group] of int: student_prefers;
+
+function var int: ceil_div(var int: x, var int: y) =
+  x div y + ((x mod y) > 0);
 
 array[Class] of Time: class_duration;
 array[Class] of int: class_size;
