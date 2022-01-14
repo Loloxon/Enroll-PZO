@@ -222,15 +222,15 @@ constraint forall(S in Student, C in Class)(length_of_lessons2[S,C] =
               then 0
               else class_duration[C] 
             endif
-      else ceil_div(
+      else 'div'(
            max([if GroupAssignment[S,C1]!=0 
                  then group_start[GroupAssignment[S,C1]]+class_duration[C1] 
                  else 0
-                endif| C1 in Class where coexists[S,C,C1]=true]) - 
+                endif| C1 in Class where coexists[S,C,C1]=true] ++ [0]) - 
            min([if GroupAssignment[S,C1]!=0 
                  then group_start[GroupAssignment[S,C1]] 
                  else end 
-                endif| C1 in Class where coexists[S,C,C1]=true]),
+                endif| C1 in Class where coexists[S,C,C1]=true] ++ [end]),
            counted[S,C])
     endif);
     
