@@ -155,7 +155,8 @@ constraint forall(S in Student, C in Class)
 
 array[Group,Group] of var 0..1: cohabited;
 % constraint forall(G in GroupCohabitats)(forall(G1, G2 in group_cohabitats[G])(cohabited[G1,G2]=true));
-constraint forall(G1, G2 in Group)(if exists(GC in GroupCohabitats, GC1, GC2 in group_cohabitats[GC])(G1=GC1 /\ G2=GC2) then cohabited[G1,G2]=1 else cohabited[G1,G2]=0 endif);
+% constraint forall(G1, G2 in Group)(if exists(GC in GroupCohabitats, GC1, GC2 in group_cohabitats[GC])(G1=GC1 /\ G2=GC2) then cohabited[G1,G2]=1 else cohabited[G1,G2]=0 endif);
+constraint forall(G1, G2 in Group)(if exists(GC in GroupCohabitats, GC1, GC2 in group_cohabitats[GC])(G1=GC1 /\ G2=GC2 \/ G1=GC2 /\ G2=GC1) then cohabited[G1,G2] = true /\ cohabited[G2,G1] = true else cohabited[G1,G2] = false /\ cohabited[G2,G1] = false endif);
 
 % grupy rozłączne
 constraint forall(S in Student, C1, C2 in Class where C1 != C2 /\

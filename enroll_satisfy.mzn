@@ -1,0 +1,94 @@
+% Parameters
+int: n_students;
+int: n_days;
+int: n_classes;
+int: n_groups;
+int: n_locations;
+int: n_time_units_in_hour;
+int: exclusion = -1;
+
+set of int: Student = 1..n_students;
+set of int: Class = 1..n_classes;
+set of int: Group = 1..n_groups;
+set of int: Day = 1..n_days;
+set of int: Location = 1..n_locations;
+set of int: Time = 0..n_time_units_in_hour * 24;
+set of int: WorkTime = 0..max(Time)*n_days;
+set of int: Preference = exclusion..max([student_prefers[s,g] | s in Student, g in Group]);
+set of int: GroupCohabitats = 1..length(group_cohabitats);
+
+array[Student] of 0..5: student_break_importance;
+array[Student, Group] of int: student_prefers;
+
+array[Class] of Time: class_duration;
+array[Class] of int: class_size;
+
+array[Group] of Class: group_class;
+array[Group] of Time: group_start;
+array[Group] of Location: group_location;
+array[Group] of Day: group_day;
+array[int] of set of Group: group_cohabitats;
+
+array[Location, Location] of Time: travel_duration;
+
+% helper function
+function var int: ceil_div(var int: x, var int: y) =
+  x div y + ((x mod y) > 0);
+
+array[Student] of var 0..max(Preference) : preference_disappointment;
+array[Student] of var 0..24*n_days: normalized_break_disappointment;
+
+array[Student, Class] of var 0..n_groups: GroupAssignment;
+constraint forall(S in Student, C in Class)(if forall(G in Group where group_class[G]=C)(student_prefers[S,G] == -1) then GroupAssignment[S,C] = 0 endif);
+
+constraint forall(S in Student, C in Class)(GroupAssignment[S,C]=0 \/ group_class[GroupAssignment[S,C]]=C);
+
+include "alldifferent.mzn";
+constraint forall(S in Student)(if forall(C1, C2 in Class where C1!=C2)(not (GroupAssignment[S,C1]=0 /\ GroupAssignment[S,C2]=0))
+    then alldifferent(C in Class)(GroupAssignment[S,C])
+    endif);
+
+%nakładaja sie czasowo
+predicate overlap_in_time(var Group: G1, var Group: G2) = group_day[G1] = group_day[G2] /\
+        group_start[G1]+class_duration[group_class[G1]]>group_start[G2] /\ group_start[G1]<group_start[G2]+class_duration[group_class[G2]];
+
+% studenci przypisanie do grup
+constraint forall(S in Student, C in Class)
+  (if not forall(G in Group)(student_prefers[S,G] == -1 \/ group_class[G] != C)
+    then group_class[GroupAssignment[S,C]] == C /\ student_prefers[S,GroupAssignment[S,C]] != -1 endif);
+
+
+array[Group,Group] of var bool: cohabited;
+% constraint forall(G in GroupCohabitats)(forall(G1, G2 in group_cohabitats[G])(cohabited[G1,G2]=true));
+constraint forall(G1, G2 in Group)(if exists(GC in GroupCohabitats, GC1, GC2 in group_cohabitats[GC])(G1=GC1 /\ G2=GC2 \/ G1=GC2 /\ G2=GC1) then cohabited[G1,G2] = true /\ cohabited[G2,G1] = true else cohabited[G1,G2] = false /\ cohabited[G2,G1] = false endif);
+% constraint forall(G1, G2 in Group)(cohabited[G1,G2]=true);
+
+% grupy rozłączne
+constraint forall(S in Student, C1, C2 in Class where C1 != C2 /\
+ GroupAssignment[S,C1]!=0 /\ GroupAssignment[S,C2]!=0)(
+ exists(G in GroupCohabitats)({GroupAssignment[S,C1],GroupAssignment[S,C2]} = group_cohabitats[G]) \/
+% cohabited[GroupAssignment[S,C1],GroupAssignment[S,C2]]=1 \/
+    not overlap_in_time(GroupAssignment[S,C1],GroupAssignment[S,C2])
+    );
+
+%liczebość
+constraint forall(G in Group)(count(col(GroupAssignment,group_class[G]),G)<=class_size[group_class[G]]);
+
+
+array[Student, Group] of var bool: GroupAssignmentB = array2d(Student, Group,
+[ GroupAssignment[S,group_class[G]]!=0 /\ GroupAssignment[S,group_class[G]]=G | S in Student, G in Group]
+);
+
+var 0..infinity : objective;
+
+
+solve satisfy;
+
+output 
+    ["assignment = [" ++ join(",", ["{" ++ join(", ", [show(g) |  g in Group where fix(GroupAssignmentB[s,g])]) ++ "}" | s in Student]) ++ "];\n"]   
+    ++ ["total_break_disappointment = " ++ show(sum([normalized_break_disappointment[S] | S in Student])) ++ ";\n"]
+    ++ ["total_preference_disappointment = " ++ show(sum(preference_disappointment)) ++ ";\n"]
+    ++ ["objective = " ++ show(objective) ++ ";\n"]
+%     ++ [show(exists(G in GroupCohabitats)({4,1} = group_cohabitats[G]))]
+    
+    
