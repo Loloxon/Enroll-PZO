@@ -43,6 +43,7 @@ array[Student] of var 0..0: normalized_break_disappointment;
 array[Student, Group] of var bool: GroupAssignmentB;
 constraint forall(S in Student, G in Group)(if student_prefers[S,G]=-1 then GroupAssignmentB[S,G] = false endif);
 
+constraint GroupAssignmentB[1,2]=true;
 % constraint forall(S in Student, C in Class)(GroupAssignment[S,C]=0 \/ group_class[GroupAssignment[S,C]]=C);
 
 % include "alldifferent.mzn";
