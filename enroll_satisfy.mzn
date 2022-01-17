@@ -61,9 +61,9 @@ predicate overlap_in_time(var Group: G1, var Group: G2) = group_day[G1] = group_
 constraint forall(S in Student, C in Class)(if attends[S,C]
 then exists(G in Group where group_class[G] = C)(GroupAssignmentB[S,G]=true) endif);
 
-array[Group,Group] of var bool: cohabited;
+% array[Group,Group] of var bool: cohabited;
 % constraint forall(G in GroupCohabitats)(forall(G1, G2 in group_cohabitats[G])(cohabited[G1,G2]=true));
-constraint forall(G1, G2 in Group)(if exists(GC in GroupCohabitats, GC1, GC2 in group_cohabitats[GC])(G1=GC1 /\ G2=GC2 \/ G1=GC2 /\ G2=GC1) then cohabited[G1,G2] = true /\ cohabited[G2,G1] = true else cohabited[G1,G2] = false /\ cohabited[G2,G1] = false endif);
+% constraint forall(G1, G2 in Group)(if exists(GC in GroupCohabitats, GC1, GC2 in group_cohabitats[GC])(G1=GC1 /\ G2=GC2 \/ G1=GC2 /\ G2=GC1) then cohabited[G1,G2] = true /\ cohabited[G2,G1] = true else cohabited[G1,G2] = false /\ cohabited[G2,G1] = false endif);
 % constraint forall(G1, G2 in Group)(cohabited[G1,G2]=true);
 
 % grupy rozłączne
@@ -78,9 +78,9 @@ constraint forall(S in Student, C in Class)(if not forall(G in Group where group
 then attends[S,C]=true else attends[S,C]=false endif);
 
 constraint forall(S in Student, G1, G2 in Group where G1<G2 /\ GroupAssignmentB[S,G1] /\ GroupAssignmentB[S,G2])(
+true \/
 not overlap_in_time(G1, G2)
 \/ exists(G in GroupCohabitats)({G1, G2}=group_cohabitats[G])
-% \/ true
 );
 % constraint GroupAssignmentB[1,2]=true;
 %liczebość
