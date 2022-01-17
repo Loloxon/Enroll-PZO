@@ -77,8 +77,11 @@ array[Student, Class] of var bool: attends;
 constraint forall(S in Student, C in Class)(if not forall(G in Group where group_class[G] = C)(student_prefers[S,G]=-1)
 then attends[S,C]=true else attends[S,C]=false endif);
 
+array[Group,Group] of var 0..1: cohabited;
+constraint forall(G1, G2 in Group)(if exists(GC in GroupCohabitats, GC1, GC2 in group_cohabitats[GC])(G1=GC1 /\ G2=GC2 \/ G1=GC2 /\ G2=GC1) then cohabited[G1,G2] = true /\ cohabited[G2,G1] = true else cohabited[G1,G2] = false /\ cohabited[G2,G1] = false endif);
+
 constraint forall(S in Student, G1, G2 in Group where G1<G2 /\ GroupAssignmentB[S,G1] /\ GroupAssignmentB[S,G2])(
-true \/
+% true \/
 not overlap_in_time(G1, G2)
 \/ exists(G in GroupCohabitats)({G1, G2}=group_cohabitats[G])
 );
@@ -99,7 +102,8 @@ var 0..0 : objective;
 solve satisfy;
 
 output 
-    ["assignment = [" ++ join(",", ["{" ++ join(", ", [show(g) |  g in Group where fix(GroupAssignmentB[s,g])]) ++ "}" | s in Student]) ++ "];\n"]   
+%     ["assignment = [" ++ join(",", ["{" ++ join(", ", [show(g) |  g in Group where fix(GroupAssignmentB[s,g])]) ++ "}" | s in Student]) ++ "];\n"]  
+    [show([if GroupAssignmentB[S,G] then G else 0 endif| S in Student, G in Group]) ++ "\n"] 
     ++ ["total_break_disappointment = " ++ show(sum([normalized_break_disappointment[S] | S in Student])) ++ ";\n"]
     ++ ["total_preference_disappointment = " ++ show(sum(preference_disappointment)) ++ ";\n"]
     ++ ["objective = " ++ show(objective) ++ ";\n"]

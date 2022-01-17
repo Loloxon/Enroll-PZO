@@ -320,6 +320,7 @@ output
 %       [show([show([coexists[S,C1,C2] | C1, C2 in Class]) | S in Student]) ++ "\n"] ++ 
 %       [show([show([length_of_lessons2[S,C] | C in Class]) | S in Student]) ++ "\n"] ++
 %       [show([counted[S,C] | S in Student, C in Class]) ++ "\n"] ++ 
+      [show([if GroupAssignment[S,group_class[G]]=G then GroupAssignment[S,group_class[G]] else 0 endif | S in Student, G in Group])] ++
       ["assignment = [" ++ join(",", ["{" ++ join(", ", [show(g) |  g in Group where fix(GroupAssignmentB[s,g])]) ++ "}" | s in Student]) ++ "];\n"] ++
 %       ["assignment = [" ++ join(",", ["{" ++ join(", ", show([ if GroupAssignment[s,g]!=0 then g else "" endif |  g in Group])) ++ "}" | s in Student]) ++ "];\n"]
 %      ["assignment = " ++ show([GroupAssignment[s,c]| c in Class, s in Student]) ++ ";\n"] ++
