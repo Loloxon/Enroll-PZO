@@ -94,10 +94,12 @@ array[Student] of set of Group: assignment;
 
 array[Student, Group] of var bool: GroupAssignmentB;
 % constraint forall(S in Student, G in Group)(if assignment[(S-1)*n_groups+G]>0 then GroupAssignmentB[S,G] = true else GroupAssignmentB[S,G] = false endif);
-constraint forall(S in NewStudent, G in NewGroup)(if exists(G1 in assignment[S])(G1=G) then GroupAssignmentB[S,G]=true else GroupAssignmentB[S,G]=false endif);
-set of int: NewStudent = 1..n_students-5;
+constraint forall(S in NewStudent where relaxS[S]=1, G in NewGroup where relaxG[G]=1)(if exists(G1 in assignment[S])(G1=G) then GroupAssignmentB[S,G]=true else GroupAssignmentB[S,G]=false endif);
+set of int: NewStudent = 1..n_students;
 set of int: NewGroup = 1..n_groups;
 
+array[Student] of 0..1: relaxS;
+array[Group] of 0..1: relaxG;
 
 constraint forall(S in Student, D in Day)(length_of_lessons[S,D] = sum([
 if GroupAssignmentB[S,G] /\ group_start[G]<=T /\ group_start[G]+class_duration[group_class[G]]-1>=T 
