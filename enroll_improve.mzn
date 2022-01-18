@@ -21,16 +21,16 @@ set of int: Day = 1..n_days;
 set of int: Location = 1..n_locations;
 set of int: Time = 0..n_time_units_in_hour * 24;
 
-set of int: Preference = exclusion..max([student_prefers[s,g] | s in Student, g in Group]);
 
-function var int: ceil_div(var int: x, var int: y) =
-  x div y + ((x mod y) > 0);
+set of int: Preference = exclusion..max([student_prefers[s,g] | s in Student, g in Group]);
 
 %info o studentach
 array[Student] of 0..5: student_break_importance;
 array[Student, Group] of int: student_prefers;
 
-%info o przedmiotach
+function var int: ceil_div(var int: x, var int: y) =
+  x div y + ((x mod y) > 0);
+
 array[Class] of Time: class_duration;
 array[Class] of int: class_size;
 
@@ -45,26 +45,30 @@ array[Location, Location] of Time: travel_duration;
 
 set of int: GroupCohabitats = 1..length(group_cohabitats);
 
+int: M = 1000000;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%time range
 int: start = min(group_start);
 int: end = max(group_start) + max(class_duration);
-
-int: maxObjective = 250000;
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%                used to calculate objective                %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+int: maxObjective = 100000000;
+ 
 array[Student] of var 0..n_classes*max(student_prefers) : preference_disappointment = [bestPref[S] - gotPref[S] | S in Student];
-array[Student] of var 0..n_classes*max(student_prefers) : bestPref = [sum([max([if group_class[G] = C then student_prefers[S,G] else 0 endif | G in Group]) | C in Class]) |S in Student];
-array[Student] of var 0..n_classes*max(student_prefers) : gotPref = [sum([max([if GroupAssignmentB[S,G] /\ group_class[G] = C then student_prefers[S,G] else 0 endif | G in Group]) | C in Class]) |S in Student];
-array[Student] of var 0..n_days*end : break_disappointment = [sum([staying_at_uni[S,D] - length_of_lessons[S,D] | D in Day]) | S in Student];
 
-array[Student] of var 0..n_days*24: normalized_break_disappointment =
+array[Student] of var 0..n_classes*max(student_prefers): bestPref = [sum([max([if group_class[G] = C then student_prefers[S,G] else 0 endif | G in Group]) | C in Class]) |S in Student];
+
+array[Student] of var 0..n_classes*max(student_prefers): gotPref = [sum([max([if GroupAssignmentB[S,G]=1 /\ group_class[G] = C then student_prefers[S,G] else 0 endif | G in Group]) | C in Class]) |S in Student];
+% niezadowolenie z powodu przerw
+array[Student] of var 0..end*n_days : break_disappointment = [sum([staying_at_uni[S,D] - length_of_lessons[S,D] | D in Day]) | S in Student];
+
+array[Student] of var 0..24*n_days: normalized_break_disappointment =
 [ceil_div(break_disappointment[S],n_time_units_in_hour)| S in Student];
 
 array[Student, Day] of var 0..end : staying_at_uni = array2d(Student, Day,
-    [max(max([if GroupAssignmentB[S,G] /\ group_day[G] == D
+    [max(max([if GroupAssignmentB[S,G]=1 /\ group_day[G] == D
                                        then group_start[G] + class_duration[group_class[G]]
                                        else 0 endif 
                         | G in Group])
-       - min([if GroupAssignmentB[S,G] /\ group_day[G] == D 
+       - min([if GroupAssignmentB[S,G]=1 /\ group_day[G] == D 
                                        then group_start[G] 
                                        else n_time_units_in_hour * 24 endif 
                         | G in Group]),0)
@@ -72,13 +76,11 @@ array[Student, Day] of var 0..end : staying_at_uni = array2d(Student, Day,
 
 array[Student, Day] of var 0..end : length_of_lessons; 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%               optimalizing               %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% array[1..n_students*n_groups] of 0..n_groups: assignment;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%               here starts new stuff               %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 array[Student] of set of Group: assignment;
 
-array[Student, Group] of var bool: GroupAssignmentB;
-% constraint forall(S in Student, G in Group)(if assignment[(S-1)*n_groups+G]>0 then GroupAssignmentB[S,G] = true else GroupAssignmentB[S,G] = false endif);
-constraint forall(S in NewStudent where relaxS[S]=1, G in NewGroup where relaxG[G]=1)(if exists(G1 in assignment[S])(G1=G) then GroupAssignmentB[S,G]=true else GroupAssignmentB[S,G]=false endif);
+array[Student, Group] of var 0..1: GroupAssignmentB;
+constraint forall(S in NewStudent where relaxS[S]=1, G in NewGroup where relaxG[G]=1)(if exists(G1 in assignment[S])(G1=G) then GroupAssignmentB[S,G]=1 else GroupAssignmentB[S,G]=0 endif);
 set of int: NewStudent = 1..n_students;
 set of int: NewGroup = 1..n_groups;
 
@@ -86,32 +88,33 @@ array[Student] of 0..1: relaxS;
 array[Group] of 0..1: relaxG;
 
 constraint forall(S in Student, D in Day)(length_of_lessons[S,D] = sum([
-if GroupAssignmentB[S,G] /\ group_start[G]<=T /\ group_start[G]+class_duration[group_class[G]]-1>=T 
+if GroupAssignmentB[S,G]=1 /\ group_start[G]<=T /\ group_start[G]+class_duration[group_class[G]]-1>=T 
 then 1 else 0 endif | G in Group where group_day[G]=D, T in start..end]));
     
 var 0..maxObjective : objective = sum([pow(ceil_div(student_break_importance[S] * normalized_break_disappointment[S] + (10 - student_break_importance[S]) * preference_disappointment[S],10),2) | S in Student]);
 
-array[Student, Class] of var bool: attends;
-constraint forall(S in Student, C in Class)(if not forall(G in Group where group_class[G] = C)(student_prefers[S,G]=-1)
-then attends[S,C]=true else attends[S,C]=false endif);
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%             constraints             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%             here are restrictions             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% constraint forall(S in Student, G in Group)(if student_prefers[S,G]=-1 then GroupAssignmentB[S,G] = 0 endif);
+constraint forall(S in Student, G in Group)(student_prefers[S,G] * GroupAssignmentB[S,G] >= 0);
+
 predicate overlap_in_time(var Group: G1, var Group: G2) = group_day[G1] = group_day[G2] /\
         group_start[G1]+class_duration[group_class[G1]]>group_start[G2] /\ group_start[G1]<group_start[G2]+class_duration[group_class[G2]];
 
-constraint forall(S in Student, G in Group)(if student_prefers[S,G]=-1 then GroupAssignmentB[S,G] = false endif);
-
 constraint forall(S in Student, C in Class)(if attends[S,C]
-then exists(G in Group where group_class[G] = C)(GroupAssignmentB[S,G]=true) endif);
+then exists(G in Group where group_class[G] = C)(GroupAssignmentB[S,G]=1) endif);
 
-array[Group,Group] of var 0..1: cohabited;
-constraint forall(G1, G2 in Group)(if exists(GC in GroupCohabitats, GC1, GC2 in group_cohabitats[GC])(G1=GC1 /\ G2=GC2 \/ G1=GC2 /\ G2=GC1) then cohabited[G1,G2] = true /\ cohabited[G2,G1] = true else cohabited[G1,G2] = false /\ cohabited[G2,G1] = false endif);
+array[Student, Class] of var bool: attends;
+constraint forall(S in Student, C in Class)(if not forall(G in Group where group_class[G] = C)(student_prefers[S,G]=-1)
+then attends[S,C]=true else attends[S,C]=false endif);
 
-constraint forall(S in Student, G1, G2 in Group where G1<G2 /\ GroupAssignmentB[S,G1] /\ GroupAssignmentB[S,G2])(
+% albo nie nachodzą na siebie, albo są w cohabitats
+constraint forall(S in Student, G1, G2 in Group where G1<G2 /\ GroupAssignmentB[S,G1]=1 /\ GroupAssignmentB[S,G2]=1)(
 not overlap_in_time(G1, G2)
 \/ exists(G in GroupCohabitats)({G1, G2}=group_cohabitats[G])
 );
-
+% grupa nie przekracza liczebności
 constraint forall(G in Group)(sum(S in Student)(GroupAssignmentB[S,G])<=class_size[group_class[G]]);
+% każdy student tylko jedna grupa danego przedmiotu
 constraint forall(S in Student, C in Class)(sum(G in Group where group_class[G]=C)(GroupAssignmentB[S,G])<=1);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -122,9 +125,8 @@ solve
         minimize objective;
 
 output 
-    ["assignment = [" ++ join(",", ["{" ++ join(", ", [show(g) |  g in Group where fix(GroupAssignmentB[s,g])]) ++ "}" | s in Student]) ++ "];\n"]
+    ["assignment = [" ++ join(",", ["{" ++ join(", ", [show(g) |  g in Group where fix(if GroupAssignmentB[s,g]=1 then true else false endif)]) ++ "}" | s in Student]) ++ "];\n"]
     ++ ["total_break_disappointment = " ++ show(sum([normalized_break_disappointment[S] | S in Student])) ++ ";\n"]
     ++ ["total_preference_disappointment = " ++ show(sum(preference_disappointment)) ++ ";\n"]
     ++ ["objective = " ++ show(objective) ++ ";\n"]
-
     

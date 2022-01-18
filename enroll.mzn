@@ -333,6 +333,7 @@ output
     ++ ["objective = " ++ show(objective) ++ ";\n"]
 %     ++ [show([x | x in group_cohabitats[1]])]
 %     ++ [show([if cohabited[G1,G2] = 1 then show([G1,G2]) else "" endif | G1, G2 in Group])]
+++ [show(sum([true, true, true, false]))]
     
 
 
