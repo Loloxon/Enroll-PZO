@@ -31,6 +31,9 @@ array[Student, Group] of int: student_prefers;
 function var int: ceil_div(var int: x, var int: y) =
   x div y + ((x mod y) > 0);
 
+predicate overlap_in_time(var Group: G1, var Group: G2) = group_day[G1] = group_day[G2] /\
+        group_start[G1]+class_duration[group_class[G1]]>group_start[G2] /\ group_start[G1]<group_start[G2]+class_duration[group_class[G2]];
+
 array[Class] of Time: class_duration;
 array[Class] of int: class_size;
 
@@ -76,16 +79,15 @@ array[Student, Day] of var 0..end : staying_at_uni = array2d(Student, Day,
 
 array[Student, Day] of var 0..end : length_of_lessons; 
 
+array[Student, Class] of var 0..1: attends;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%               here starts new stuff               %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 array[Student] of set of Group: assignment;
 
 array[Student, Group] of var 0..1: GroupAssignmentB;
-constraint forall(S in NewStudent where relaxS[S]=1, G in NewGroup where relaxG[G]=1)(if exists(G1 in assignment[S])(G1=G) then GroupAssignmentB[S,G]=1 else GroupAssignmentB[S,G]=0 endif);
-set of int: NewStudent = 1..n_students;
-set of int: NewGroup = 1..n_groups;
+constraint forall(S in Student where relaxS[S]=1, G in Group where relaxC[group_class[G]]=1)(if exists(G1 in assignment[S])(G1=G) then GroupAssignmentB[S,G]=1 else GroupAssignmentB[S,G]=0 endif);
 
 array[Student] of 0..1: relaxS;
-array[Group] of 0..1: relaxG;
+array[Class] of 0..1: relaxC;
 
 constraint forall(S in Student, D in Day)(length_of_lessons[S,D] = sum([
 if GroupAssignmentB[S,G]=1 /\ group_start[G]<=T /\ group_start[G]+class_duration[group_class[G]]-1>=T 
@@ -97,15 +99,14 @@ var 0..maxObjective : objective = sum([pow(ceil_div(student_break_importance[S] 
 % constraint forall(S in Student, G in Group)(if student_prefers[S,G]=-1 then GroupAssignmentB[S,G] = 0 endif);
 constraint forall(S in Student, G in Group)(student_prefers[S,G] * GroupAssignmentB[S,G] >= 0);
 
-predicate overlap_in_time(var Group: G1, var Group: G2) = group_day[G1] = group_day[G2] /\
-        group_start[G1]+class_duration[group_class[G1]]>group_start[G2] /\ group_start[G1]<group_start[G2]+class_duration[group_class[G2]];
+% constraint forall(S in Student, C in Class)(if attends[S,C]=1
+% then exists(G in Group where group_class[G] = C)(GroupAssignmentB[S,G]=1) endif);
+constraint forall(S in Student, C in Class)(sum(G in Group where group_class[G] = C)(GroupAssignmentB[S,G])=attends[S,C]);
 
-constraint forall(S in Student, C in Class)(if attends[S,C]
-then exists(G in Group where group_class[G] = C)(GroupAssignmentB[S,G]=1) endif);
-
-array[Student, Class] of var bool: attends;
-constraint forall(S in Student, C in Class)(if not forall(G in Group where group_class[G] = C)(student_prefers[S,G]=-1)
-then attends[S,C]=true else attends[S,C]=false endif);
+% constraint forall(S in Student, C in Class)(if not forall(G in Group where group_class[G] = C)(student_prefers[S,G]=-1)
+% then attends[S,C]=1 else attends[S,C]=0 endif);
+constraint forall(S in Student, C in Class)(if sum(G in Group where group_class[G]=C)(student_prefers[S,G]+1)>0
+then attends[S,C]=1 else attends[S,C]=0 endif);
 
 % albo nie nachodzą na siebie, albo są w cohabitats
 constraint forall(S in Student, G1, G2 in Group where G1<G2 /\ GroupAssignmentB[S,G1]=1 /\ GroupAssignmentB[S,G2]=1)(
