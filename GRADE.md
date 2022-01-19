@@ -1,7 +1,7 @@
 Dear Student,
 
 I'm happy to announce that you've managed to get **8** out of 8 points for this assignment.\
-There is nothing more to say, just please receive my [congratulations](https://youtu.be/1Bix44C1EzY).
+Me and all the other virtual entities [salute you](https://tenor.com/xtvD.gif).
 
 -----------
 I remain your faithful servant\
