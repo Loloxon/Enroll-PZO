@@ -79,8 +79,14 @@ array[Student, Day] of var 0..end : staying_at_uni = array2d(Student, Day,
 
 array[Student, Day] of var 0..end : length_of_lessons; 
 
+constraint forall(S in Student, D in Day)(length_of_lessons[S,D] = sum([
+if GroupAssignmentB[S,G]=1 /\ group_start[G]<=T /\ group_start[G]+class_duration[group_class[G]]-1>=T 
+then 1 else 0 endif | G in Group where group_day[G]=D, T in start..end]));
+    
+var 0..maxObjective : objective = sum([pow(ceil_div(student_break_importance[S] * normalized_break_disappointment[S] + (10 - student_break_importance[S]) * preference_disappointment[S],10),2) | S in Student]);
+
 array[Student, Class] of var 0..1: attends;
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%               here starts new stuff               %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%               here starts new stuff               %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 array[Student] of set of Group: assignment;
 
 array[Student, Group] of var 0..1: GroupAssignmentB;
@@ -88,14 +94,7 @@ constraint forall(S in Student where relaxS[S]=1, G in Group where relaxC[group_
 
 array[Student] of 0..1: relaxS;
 array[Class] of 0..1: relaxC;
-
-constraint forall(S in Student, D in Day)(length_of_lessons[S,D] = sum([
-if GroupAssignmentB[S,G]=1 /\ group_start[G]<=T /\ group_start[G]+class_duration[group_class[G]]-1>=T 
-then 1 else 0 endif | G in Group where group_day[G]=D, T in start..end]));
-    
-var 0..maxObjective : objective = sum([pow(ceil_div(student_break_importance[S] * normalized_break_disappointment[S] + (10 - student_break_importance[S]) * preference_disappointment[S],10),2) | S in Student]);
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%             here are restrictions             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%             constraints             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % constraint forall(S in Student, G in Group)(if student_prefers[S,G]=-1 then GroupAssignmentB[S,G] = 0 endif);
 constraint forall(S in Student, G in Group)(student_prefers[S,G] * GroupAssignmentB[S,G] >= 0);
 
@@ -111,8 +110,7 @@ then attends[S,C]=1 else attends[S,C]=0 endif);
 % albo nie nachodzą na siebie, albo są w cohabitats
 constraint forall(S in Student, G1, G2 in Group where G1<G2 /\ GroupAssignmentB[S,G1]=1 /\ GroupAssignmentB[S,G2]=1)(
 not overlap_in_time(G1, G2)
-\/ exists(G in GroupCohabitats)({G1, G2}=group_cohabitats[G])
-);
+\/ exists(G in GroupCohabitats)({G1, G2}=group_cohabitats[G]));
 % grupa nie przekracza liczebności
 constraint forall(G in Group)(sum(S in Student)(GroupAssignmentB[S,G])<=class_size[group_class[G]]);
 % każdy student tylko jedna grupa danego przedmiotu
