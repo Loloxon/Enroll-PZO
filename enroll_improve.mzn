@@ -31,8 +31,10 @@ array[Student, Group] of int: student_prefers;
 function var int: ceil_div(var int: x, var int: y) =
   x div y + ((x mod y) > 0);
 
+% predicate overlap_in_time(var Group: G1, var Group: G2) = group_day[G1] = group_day[G2] /\
+%         group_start[G1]+class_duration[group_class[G1]]+travel_duration[group_location[G1],group_location[G2]]>group_start[G2] /\ group_start[G1]<group_start[G2]+class_duration[group_class[G2]]+travel_duration[group_location[G2],group_location[G1]];
 predicate overlap_in_time(var Group: G1, var Group: G2) = group_day[G1] = group_day[G2] /\
-        group_start[G1]+class_duration[group_class[G1]]>group_start[G2] /\ group_start[G1]<group_start[G2]+class_duration[group_class[G2]];
+        not(group_start[G1]+class_duration[group_class[G1]]+travel_duration[group_location[G1],group_location[G2]]<=group_start[G2] \/ group_start[G1]>=group_start[G2]+class_duration[group_class[G2]]+travel_duration[group_location[G2],group_location[G1]]);
 
 array[Class] of Time: class_duration;
 array[Class] of int: class_size;
@@ -53,7 +55,7 @@ int: M = 1000000;
 %time range
 int: start = min(group_start);
 int: end = max(group_start) + max(class_duration);
-int: maxObjective = 100000000;
+int: maxObjective = 300000;
  
 array[Student] of var 0..n_classes*max(student_prefers) : preference_disappointment = [bestPref[S] - gotPref[S] | S in Student];
 
@@ -79,14 +81,16 @@ array[Student, Day] of var 0..end : staying_at_uni = array2d(Student, Day,
 
 array[Student, Day] of var 0..end : length_of_lessons; 
 
-constraint forall(S in Student, D in Day)(length_of_lessons[S,D] = sum([
-if GroupAssignmentB[S,G]=1 /\ group_start[G]<=T /\ group_start[G]+class_duration[group_class[G]]-1>=T 
-then 1 else 0 endif | G in Group where group_day[G]=D, T in start..end]));
+% constraint forall(S in Student, D in Day)(length_of_lessons[S,D] = sum([
+% if GroupAssignmentB[S,G]=1 /\ group_start[G]<=T /\ group_start[G]+class_duration[group_class[G]]-1>=T 
+% then 1 else 0 endif | G in Group where group_day[G]=D, T in start..end]));
+constraint forall(S in Student, D in Day)(length_of_lessons[S,D] = sum([GroupAssignmentB[S,G]
+| G in Group where group_day[G]=D, T in start..end where group_start[G]<=T /\ group_start[G]+class_duration[group_class[G]]>T]));
     
 var 0..maxObjective : objective = sum([pow(ceil_div(student_break_importance[S] * normalized_break_disappointment[S] + (10 - student_break_importance[S]) * preference_disappointment[S],10),2) | S in Student]);
 
 array[Student, Class] of var 0..1: attends;
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%               here starts new stuff               %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%               gettin static info               %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 array[Student] of set of Group: assignment;
 
 array[Student, Group] of var 0..1: GroupAssignmentB;
@@ -121,6 +125,7 @@ solve
       :: seq_search([
         int_search(GroupAssignmentB, dom_w_deg, indomain_random),
         ])
+%         satisfy;
         minimize objective;
 
 output 

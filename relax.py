@@ -10,7 +10,7 @@ for i in range(10):
         rS = randint(0, 174 - 1)
     # S[rS] = 0
 
-for i in range(4):
+for i in range(7):
     rC = randint(0, 25 - 1)
     while C[rC] == 0 or class_size[rC] == 174:
         rC = randint(0, 25 - 1)
