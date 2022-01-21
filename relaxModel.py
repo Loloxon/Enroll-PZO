@@ -1,45 +1,81 @@
 
 from minizinc import Instance, Model, Solver
 from random import randint
+from time import time
 
 if __name__ == "__main__":
 
-    S = [1 for _ in range(174)]
-    class_size = [15, 174, 15, 174, 15, 30, 174, 15, 174, 15, 174, 15, 174, 15, 174, 15, 174, 30, 174, 15, 174, 15, 174,
-                  15, 174]
-    C = [1 for _ in range(25)]
+    # helping fuctions
+    # setting variables to relax -> will be later upgraded to chose variables more wisely not at random
+    def get_relax_values(s=45,c=0):
+        S = [1 for _ in range(174)]
+        class_size = [15, 174, 15, 174, 15, 30, 174, 15, 174, 15, 174, 15, 174, 15, 174, 15, 174, 30, 174, 15, 174, 15, 174,
+                      15, 174]
+        C = [1 for _ in range(25)]
 
-    for i in range(45):
-        rS = randint(0, 174 - 1)
-        while S[rS] == 0:
+        for i in range(s):
             rS = randint(0, 174 - 1)
-        S[rS] = 0
-    # 12 to wykłady - 13 to zajęcia
-    for i in range(0):
-        rC = randint(0, 25 - 1)
-        while C[rC] == 0 or class_size[rC] == 174:
+            while S[rS] == 0:
+                rS = randint(0, 174 - 1)
+            S[rS] = 0
+        # 12 to wykłady - 13 to zajęcia
+        for i in range(c):
             rC = randint(0, 25 - 1)
-        C[rC] = 0
+            while C[rC] == 0 or class_size[rC] == 174:
+                rC = randint(0, 25 - 1)
+            C[rC] = 0
+        return S,C
 
-    enroll = Model("./enroll_improve.mzn")
+    # funcion improving solution
+    def improve_solution(instance, s = 3, c = 0):
+        S, C = get_relax_values(s, c)
+        data = open("./data/competition_improve.dzn", "r")
+        list_of_lines = data.readlines()
+        # will be upgraded to f-string later
+        list_of_lines[18] = "relaxS = " + str(S) + ";\n"
+        list_of_lines[19] = "relaxC = " + str(C) + ";"
 
-    gecode = Solver.lookup("gecode")
+        a_file = open("./data/competition_improve.dzn", "w")
+        a_file.writelines(list_of_lines)
+        a_file.close()
 
-    instance = Instance(gecode, enroll)
+        with instance.branch() as opt:
+            opt.add_file("./data/competition_improve.dzn", True)
+            result = opt.solve()
+            return result
 
-    # data = open("./data/competition_improve.dzn", "r")
-    # list_of_lines = data.readlines()
-    # print(list_of_lines)
-    # print(len(list_of_lines))
-    # list_of_lines[21] = str(S)
-    # list_of_lines[22] = str(C)
+    def update_data(result, new_result):
+        if result["objective"] > new_result["objective"]:
+            data = open("./data/competition_improve.dzn", "r")
+            list_of_lines = data.readlines()
+            list_of_lines[17] = "assignmentB = " + str(new_result["GroupAssignmentB"]) + ";\n"
 
-    # a_file = open("./data/competition_improve.dzn", "w")
-    # a_file.writelines(list_of_lines)
-    # a_file.close()
+            a_file = open("./data/competition_improve.dzn", "w")
+            a_file.writelines(list_of_lines)
+            a_file.close()
+            print("New solution is better")
+            return new_result
+        print("New solution is worse or same as old")
+        return result
 
-    instance.add_file("./data/competition_improve.dzn", True)
 
-    result = instance.solve()
-    for i in range(len(result)):
-        print(result[i, "x"])
+    # execution starts here
+    model = Model("./enroll_improve.mzn")
+
+    solver = Solver.lookup("gurobi")
+
+    instance = Instance(solver, model)
+
+    i = 0
+    result = {"objective": float('inf')}
+
+    start_time = time()
+    while True:
+        checkpoint = time()
+        i += 1
+        new_result = improve_solution(instance, 0, 3)
+        print("number: ", i)
+        print("new_result", new_result)
+        print("time: ", time() - checkpoint, "s")
+        result = update_data(result, new_result)
+        print("-------------------------------")

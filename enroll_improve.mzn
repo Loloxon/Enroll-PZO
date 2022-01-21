@@ -55,8 +55,8 @@ int: M = 1000000;
 %time range
 int: start = min(group_start);
 int: end = max(group_start) + max(class_duration);
-% int: maxObjective = 300000;
-int: maxObjective = 38000;
+
+int: maxObjective = 380000;
 int: minObjective = 35000;
  
 array[Student] of var 0..n_classes*max(student_prefers) : preference_disappointment = [bestPref[S] - gotPref[S] | S in Student];
@@ -93,10 +93,13 @@ var minObjective..maxObjective : objective = sum([pow(ceil_div(student_break_imp
 
 array[Student, Class] of var 0..1: attends;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%               gettin static info               %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-array[Student] of set of Group: assignment;
+% array[Student] of set of Group: assignment;
+array[Student,Group] of 0..1 : assignmentB;
 
 array[Student, Group] of var 0..1: GroupAssignmentB;
-constraint forall(S in Student where relaxS[S]=1, G in Group where relaxC[group_class[G]]=1)(if exists(G1 in assignment[S])(G1=G) then GroupAssignmentB[S,G]=1 else GroupAssignmentB[S,G]=0 endif);
+% constraint forall(S in Student where relaxS[S]=1, G in Group where relaxC[group_class[G]]=1)(if exists(G1 in assignment[S])(G1=G) then GroupAssignmentB[S,G]=1 else GroupAssignmentB[S,G]=0 endif);
+
+constraint forall(S in Student where relaxS[S]=1, G in Group where relaxC[group_class[G]]=1)(GroupAssignmentB[S,G] = assignmentB[S,G]);
 
 array[Student] of 0..1: relaxS;
 array[Class] of 0..1: relaxC;
@@ -136,4 +139,5 @@ output
     ++ ["total_break_disappointment = " ++ show(sum([normalized_break_disappointment[S] | S in Student])) ++ ";\n"]
     ++ ["total_preference_disappointment = " ++ show(sum(preference_disappointment)) ++ ";\n"]
     ++ ["objective = " ++ show(objective) ++ ";\n"]
+    ++ ["groupassignmrnt = " ++ show([GroupAssignmentB[S,G] | S in Student, G in Group])]
     
