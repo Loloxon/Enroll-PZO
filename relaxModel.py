@@ -10,7 +10,7 @@ if __name__ == "__main__":
     # helping fuctions
 
     # function updating file competition_improve.dzn
-    def update_data(result, new_result):
+    def update_data(result, new_result, tries_without_improvement):
         n = len(new_result) - 1
         n1 = len(result) - 1
         if result[n1, "objective"] > new_result[n, "objective"]:
@@ -28,9 +28,11 @@ if __name__ == "__main__":
             a_file.writelines(list_of_lines)
             a_file.close()
             print("New solution is better (diff: ", result[n1, "objective"] - new_result[n, "objective"], ")")
-            return new_result
+            tries_without_improvement = 0
+            return new_result, tries_without_improvement
         print("New solution is same or worse then old")
-        return result
+        tries_without_improvement += 1
+        return result, tries_without_improvement
 
 
     # setting variables to relax s, c are number of students and classes to relax
@@ -92,21 +94,27 @@ if __name__ == "__main__":
 
     start_time = time()
     sec = 0
+    tries_without_improvement = 0
+    students = 100
+    classes = 6
+
     while True:
+
+        if tries_without_improvement >= 3:
+            students += 10
         checkpoint = time()
         i += 1
-
-        new_result = improve_solution(instance1, 15, 5, sec)
+        new_result = improve_solution(instance2, min(174, students), min(classes, 8), sec)
         tdiff = time() - checkpoint
         print("number:", i)
-        # print("new_result", new_result[len(new_result)-2])
+
         if floor(tdiff % 60) < 10:
             print("time: ", int(tdiff // 60), ":0", floor(tdiff % 60), sep="")
         else:
             print("time: ", int(tdiff // 60), ":", floor(tdiff % 60), sep="")
         if len(new_result) > 0:
             print("new_result", new_result[len(new_result) - 1])
-            result = update_data(result, new_result)
+            result, tries_without_improvement = update_data(result, new_result, tries_without_improvement)
         else:
             print("did not find any solution in given time bound")
             sec += 30
