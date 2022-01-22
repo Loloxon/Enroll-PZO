@@ -56,7 +56,7 @@ int: M = 1000000;
 int: start = min(group_start);
 int: end = max(group_start) + max(class_duration);
 
-int: maxObjective = 380000;
+int: maxObjective;
 int: minObjective = 35000;
  
 array[Student] of var 0..n_classes*max(student_prefers) : preference_disappointment = [bestPref[S] - gotPref[S] | S in Student];
@@ -129,8 +129,8 @@ constraint forall(S in Student, C in Class)(sum(G in Group where group_class[G]=
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 solve 
       :: seq_search([
-        int_search(GroupAssignmentB, dom_w_deg, indomain_random),
-        int_search(attends, dom_w_deg, indomain_random),
+        int_search(GroupAssignmentB, dom_w_deg, indomain_min),
+        int_search(attends, dom_w_deg, indomain_min),
         ])
 %         satisfy;
         minimize objective;
@@ -140,5 +140,5 @@ output
     ++ ["total_break_disappointment = " ++ show(sum([normalized_break_disappointment[S] | S in Student])) ++ ";\n"]
     ++ ["total_preference_disappointment = " ++ show(sum(preference_disappointment)) ++ ";\n"]
     ++ ["objective = " ++ show(objective) ++ ";\n"]
-    ++ ["groupassignmrnt = " ++ show([GroupAssignmentB[S,G] | S in Student, G in Group])]
+    ++ ["GroupAssignmentB = " ++ show([GroupAssignmentB[S,G] | S in Student, G in Group])]
     

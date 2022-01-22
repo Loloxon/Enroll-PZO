@@ -57,7 +57,7 @@ if __name__ == "__main__":
                 S += s1 + ", "
             S = S[:-2]
             list_of_lines[17] = "assignmentB = array2d(Student, Group, [" + S + "]);\n"
-            list_of_lines[20] = "% objective = " + str(new_result["objective"]) + ";\n"
+            list_of_lines[20] = "maxObjective = " + str(new_result["objective"]) + ";\n"
             a_file = open("./data/competition_improve.dzn", "w")
             a_file.writelines(list_of_lines)
             a_file.close()
@@ -82,10 +82,10 @@ if __name__ == "__main__":
         checkpoint = time()
         i += 1
 
-        classes = randint(2, 7)
-        new_result = improve_solution(instance, 70//(2*classes), classes)
+        classes = randint(2, 2)
         print("number: ", i)
-        print("classes: ", classes, ", students: ", 70//(2*classes))
+        print("classes: ", classes, ", students: ", 70//(20*classes))
+        new_result = improve_solution(instance, 70//(20*classes), classes)
         print("new_result", new_result)
         print("time: ", time() - checkpoint, "s")
         result = update_data(result, new_result)
