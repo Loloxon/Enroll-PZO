@@ -80,16 +80,15 @@ if __name__ == "__main__":
     list_of_lines = data.readlines()
     print("starting objective:", int(str(list_of_lines[20])[15:-2]))
     result = {"objective": int(str(list_of_lines[20])[15:-2])}
-    # result = {"objective": float('inf')}
 
     start_time = time()
     while True:
         checkpoint = time()
         i += 1
 
-        print("number:", i)
         new_result = improve_solution(instance, 0, 1)
         tdiff = time() - checkpoint
+        print("number:", i)
         print("new_result", new_result)
         print("time: ", int(tdiff//60), ":", floor(tdiff % 60), sep="")
         result = update_data(result, new_result)
