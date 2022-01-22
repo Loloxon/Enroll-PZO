@@ -69,7 +69,7 @@ if __name__ == "__main__":
 
         with instance.branch() as opt:
             opt.add_file("./data/competition_improve.dzn", True)
-            return opt.solve(intermediate_solutions=True, timeout=timedelta(minutes=4))
+            return opt.solve(intermediate_solutions=True, timeout=timedelta(minutes=5))
 
 
     # execution starts here
@@ -95,7 +95,7 @@ if __name__ == "__main__":
         checkpoint = time()
         i += 1
 
-        new_result = improve_solution(instance1, 20, 0)
+        new_result = improve_solution(instance2, 20, 5)
         tdiff = time() - checkpoint
         print("number:", i)
         # print("new_result", new_result[len(new_result)-2])
@@ -106,4 +106,6 @@ if __name__ == "__main__":
         if len(new_result) > 0:
             print("new_result", new_result[len(new_result) - 1])
             result = update_data(result, new_result)
+        else:
+            print("did not find any solution in given time bound")
         print("-------------------------------")
