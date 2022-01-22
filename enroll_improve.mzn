@@ -100,6 +100,7 @@ array[Student, Group] of var 0..1: GroupAssignmentB;
 % constraint forall(S in Student where relaxS[S]=1, G in Group where relaxC[group_class[G]]=1)(if exists(G1 in assignment[S])(G1=G) then GroupAssignmentB[S,G]=1 else GroupAssignmentB[S,G]=0 endif);
 
 constraint forall(S in Student where relaxS[S]=1, G in Group where relaxC[group_class[G]]=1)(GroupAssignmentB[S,G] = assignmentB[S,G]);
+% constraint forall(S in Student, G in Group)(if relaxC[group_class[G]]=1 \/ relaxS[S]=1 then GroupAssignmentB[S,G] = assignmentB[S,G] endif);
 
 array[Student] of 0..1: relaxS;
 array[Class] of 0..1: relaxC;
