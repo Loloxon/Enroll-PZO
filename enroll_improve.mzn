@@ -99,7 +99,9 @@ array[Student,Group] of 0..1 : assignmentB;
 array[Student, Group] of var 0..1: GroupAssignmentB;
 % constraint forall(S in Student where relaxS[S]=1, G in Group where relaxC[group_class[G]]=1)(if exists(G1 in assignment[S])(G1=G) then GroupAssignmentB[S,G]=1 else GroupAssignmentB[S,G]=0 endif);
 
+%    dowolny z S, C jest 0 -> nie przypisuje (czyli np. 15 studentów ma zerowane wszystko i 5 przedmiotów ma zerowane wszystko)
 constraint forall(S in Student where relaxS[S]=1, G in Group where relaxC[group_class[G]]=1)(GroupAssignmentB[S,G] = assignmentB[S,G]);
+%    dowolny z S, C jest 1 -> przypisuje (czyli np. 15 studentów ma zerowane 5 przedmiotów)
 % constraint forall(S in Student, G in Group)(if relaxC[group_class[G]]=1 \/ relaxS[S]=1 then GroupAssignmentB[S,G] = assignmentB[S,G] endif);
 
 array[Student] of 0..1: relaxS;
@@ -129,8 +131,8 @@ constraint forall(S in Student, C in Class)(sum(G in Group where group_class[G]=
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 solve 
       :: seq_search([
-        int_search(GroupAssignmentB, dom_w_deg, indomain_min),
-        int_search(attends, dom_w_deg, indomain_min),
+        int_search(GroupAssignmentB, dom_w_deg, indomain_max),
+        int_search(attends, dom_w_deg, indomain_max),
         ])
 %         satisfy;
         minimize objective;
