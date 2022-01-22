@@ -55,7 +55,7 @@ if __name__ == "__main__":
 
 
     # function improving solution
-    def improve_solution(instance, s, c):
+    def improve_solution(instance, s, c, sec):
         S, C = get_relax_values(s, c)
         data = open("./data/competition_improve.dzn", "r")
         list_of_lines = data.readlines()
@@ -69,7 +69,7 @@ if __name__ == "__main__":
 
         with instance.branch() as opt:
             opt.add_file("./data/competition_improve.dzn", True)
-            return opt.solve(intermediate_solutions=True, timeout=timedelta(minutes=5))
+            return opt.solve(intermediate_solutions=True, timeout=timedelta(minutes=3, seconds=sec))
 
 
     # execution starts here
@@ -91,11 +91,12 @@ if __name__ == "__main__":
     result = {(0, "objective"): int(str(list_of_lines[20])[17:-2])}
 
     start_time = time()
+    sec = 0
     while True:
         checkpoint = time()
         i += 1
 
-        new_result = improve_solution(instance2, 20, 5)
+        new_result = improve_solution(instance1, 15, 5, sec)
         tdiff = time() - checkpoint
         print("number:", i)
         # print("new_result", new_result[len(new_result)-2])
@@ -108,4 +109,5 @@ if __name__ == "__main__":
             result = update_data(result, new_result)
         else:
             print("did not find any solution in given time bound")
+            sec += 30
         print("-------------------------------")
