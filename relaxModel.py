@@ -27,7 +27,8 @@ if __name__ == "__main__":
             a_file = open("./data/competition_improve.dzn", "w")
             a_file.writelines(list_of_lines)
             a_file.close()
-            print("New solution is better (diff: ", result[n1, "objective"] - new_result[n, "objective"], ")")
+            print("New solution is better (diff: ", result[n1, "objective"] - new_result[n, "objective"], "; to go:",
+                  36746-new_result[n, "objective"],  ")", sep="")
             return new_result, True
         print("New solution is same or worse then old")
         return result, False
