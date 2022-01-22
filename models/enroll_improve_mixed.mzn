@@ -56,7 +56,7 @@ int: M = 1000000;
 int: start = min(group_start);
 int: end = max(group_start) + max(class_duration);
 
-int: maxObjective;
+int: maxObjective = 40000;
 int: minObjective = 35000;
  
 array[Student] of var 0..n_classes*max(student_prefers) : preference_disappointment = [bestPref[S] - gotPref[S] | S in Student];
@@ -100,9 +100,9 @@ array[Student, Group] of var 0..1: GroupAssignmentB;
 % constraint forall(S in Student where relaxS[S]=1, G in Group where relaxC[group_class[G]]=1)(if exists(G1 in assignment[S])(G1=G) then GroupAssignmentB[S,G]=1 else GroupAssignmentB[S,G]=0 endif);
 
 %    dowolny z S, C jest 0 -> nie przypisuje (czyli np. 15 studentów ma zerowane wszystko i 5 przedmiotów ma zerowane wszystko)
-constraint forall(S in Student where relaxS[S]=1, G in Group where relaxC[group_class[G]]=1)(GroupAssignmentB[S,G] = assignmentB[S,G]);
+% constraint forall(S in Student where relaxS[S]=1, G in Group where relaxC[group_class[G]]=1)(GroupAssignmentB[S,G] = assignmentB[S,G]);
 %    dowolny z S, C jest 1 -> przypisuje (czyli np. 15 studentów ma zerowane 5 przedmiotów)
-% constraint forall(S in Student, G in Group)(if relaxC[group_class[G]]=1 \/ relaxS[S]=1 then GroupAssignmentB[S,G] = assignmentB[S,G] endif);
+constraint forall(S in Student, G in Group)(if relaxC[group_class[G]]=1 \/ relaxS[S]=1 then GroupAssignmentB[S,G] = assignmentB[S,G] endif);
 
 array[Student] of 0..1: relaxS;
 array[Class] of 0..1: relaxC;
