@@ -1,3 +1,4 @@
+from datetime import timedelta
 from math import floor
 
 from minizinc import Instance, Model, Solver
@@ -10,24 +11,27 @@ if __name__ == "__main__":
 
     # function updating file competition_improve.dzn
     def update_data(result, new_result):
-        if result["objective"] > new_result["objective"]:
+        n = len(new_result) - 1
+        n1 = len(result) - 1
+        if result[n1, "objective"] > new_result[n, "objective"]:
             data = open("./data/competition_improve.dzn", "r")
             list_of_lines = data.readlines()
             S = ""
-            for s in new_result["GroupAssignmentB"]:
+            for s in new_result[n, "GroupAssignmentB"]:
                 s1 = str(s)
                 s1 = s1[1:-1]
                 S += s1 + ", "
             S = S[:-2]
             list_of_lines[17] = "assignmentB = array2d(Student, Group, [" + S + "]);\n"
-            list_of_lines[20] = "maxObjective = " + str(new_result["objective"]) + ";\n"
+            list_of_lines[20] = "% maxObjective = " + str(new_result[n, "objective"]) + ";\n"
             a_file = open("./data/competition_improve.dzn", "w")
             a_file.writelines(list_of_lines)
             a_file.close()
-            print("New solution is better (diff: ", result["objective"] - new_result["objective"], ")")
+            print("New solution is better (diff: ", result[n1, "objective"] - new_result[n, "objective"], ")")
             return new_result
-        print("New solution is same as old")
+        print("New solution is same or worse then old")
         return result
+
 
     # setting variables to relax s, c are number of students and classes to relax
     def get_relax_values(s, c):
@@ -50,7 +54,7 @@ if __name__ == "__main__":
         return S, C
 
 
-    # funcion improving solution
+    # function improving solution
     def improve_solution(instance, s, c):
         S, C = get_relax_values(s, c)
         data = open("./data/competition_improve.dzn", "r")
@@ -65,7 +69,8 @@ if __name__ == "__main__":
 
         with instance.branch() as opt:
             opt.add_file("./data/competition_improve.dzn", True)
-            return opt.solve()
+            return opt.solve(intermediate_solutions=True, timeout=timedelta(minutes=4))
+
 
     # execution starts here
 
@@ -82,18 +87,23 @@ if __name__ == "__main__":
     i = 0
     data = open("./data/competition_improve.dzn", "r")
     list_of_lines = data.readlines()
-    print("starting objective:", int(str(list_of_lines[20])[15:-2]))
-    result = {"objective": int(str(list_of_lines[20])[15:-2])}
+    print("starting objective:", int(str(list_of_lines[20])[17:-2]))
+    result = {(0, "objective"): int(str(list_of_lines[20])[17:-2])}
 
     start_time = time()
     while True:
         checkpoint = time()
         i += 1
 
-        new_result = improve_solution(instance2, 30, 6)
+        new_result = improve_solution(instance1, 20, 0)
         tdiff = time() - checkpoint
         print("number:", i)
-        print("new_result", new_result)
-        print("time: ", int(tdiff//60), ":", floor(tdiff % 60), sep="")
-        result = update_data(result, new_result)
+        # print("new_result", new_result[len(new_result)-2])
+        if floor(tdiff % 60) < 10:
+            print("time: ", int(tdiff // 60), ":0", floor(tdiff % 60), sep="")
+        else:
+            print("time: ", int(tdiff // 60), ":", floor(tdiff % 60), sep="")
+        if len(new_result) > 0:
+            print("new_result", new_result[len(new_result) - 1])
+            result = update_data(result, new_result)
         print("-------------------------------")
