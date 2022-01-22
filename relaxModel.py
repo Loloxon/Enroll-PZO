@@ -28,9 +28,9 @@ if __name__ == "__main__":
             a_file.writelines(list_of_lines)
             a_file.close()
             print("New solution is better (diff: ", result[n1, "objective"] - new_result[n, "objective"], ")")
-            return new_result
+            return new_result, True
         print("New solution is same or worse then old")
-        return result
+        return result, False
 
 
     # setting variables to relax s, c are number of students and classes to relax
@@ -69,7 +69,7 @@ if __name__ == "__main__":
 
         with instance.branch() as opt:
             opt.add_file("./data/competition_improve.dzn", True)
-            return opt.solve(intermediate_solutions=True, timeout=timedelta(minutes=3, seconds=sec))
+            return opt.solve(intermediate_solutions=True, timeout=timedelta(minutes=2, seconds=sec))
 
 
     # execution starts here
@@ -92,22 +92,39 @@ if __name__ == "__main__":
 
     start_time = time()
     sec = 0
+    timectr = 0
+    relaxctr = 0
+    studentR = 5
+    classR = 2
     while True:
         checkpoint = time()
         i += 1
-
-        new_result = improve_solution(instance1, 15, 5, sec)
+        # 9 grup na przedmiot
+        new_result = improve_solution(instance1, studentR, classR, sec)
         tdiff = time() - checkpoint
-        print("number:", i)
+        print("number:", i, ", students: ", studentR, ", classes", classR)
         # print("new_result", new_result[len(new_result)-2])
         if floor(tdiff % 60) < 10:
             print("time: ", int(tdiff // 60), ":0", floor(tdiff % 60), sep="")
         else:
             print("time: ", int(tdiff // 60), ":", floor(tdiff % 60), sep="")
         if len(new_result) > 0:
-            print("new_result", new_result[len(new_result) - 1])
-            result = update_data(result, new_result)
+            print("new_result:", new_result[len(new_result) - 1, "objective"])
+            result, add = update_data(result, new_result)
+            if add:
+                relaxctr = 0
+            else:
+                relaxctr += 1
         else:
+            timectr += 1
             print("did not find any solution in given time bound")
+
+        if relaxctr == 5:  # zwiększ relaksacje
+            relaxctr = 0
+            classR += 1
+            studentR += 3
+        if timectr == 3:  # zwiększ czas
+            timectr = 0
             sec += 30
+        print("relaxctr:", relaxctr, ", timectr", timectr)
         print("-------------------------------")
