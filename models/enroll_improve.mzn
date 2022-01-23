@@ -56,7 +56,7 @@ int: M = 1000000;
 int: start = min(group_start);
 int: end = max(group_start) + max(class_duration);
 
-int: maxObjective = 40000;
+int: maxObjective = 36900;
 int: minObjective = 35000;
  
 array[Student] of var 0..n_classes*max(student_prefers) : preference_disappointment = [bestPref[S] - gotPref[S] | S in Student];

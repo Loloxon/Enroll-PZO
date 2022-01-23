@@ -27,8 +27,8 @@ if __name__ == "__main__":
             a_file = open("./data/competition_improve.dzn", "w")
             a_file.writelines(list_of_lines)
             a_file.close()
-            print("New solution is better (diff: ", result[n1, "objective"] - new_result[n, "objective"], "; to go:",
-                  36746-new_result[n, "objective"],  ")", sep="")
+            print("New solution is better (diff: ", result[n1, "objective"] - new_result[n, "objective"], "; to go: ",
+                  new_result[n, "objective"]-36746,  ")", sep="")
             return new_result, True
         print("New solution is same or worse then old")
         return result, False
@@ -70,7 +70,7 @@ if __name__ == "__main__":
 
         with instance.branch() as opt:
             opt.add_file("./data/competition_improve.dzn", True)
-            return opt.solve(intermediate_solutions=True, timeout=timedelta(minutes=2, seconds=sec))
+            return opt.solve(intermediate_solutions=True, timeout=timedelta(minutes=5, seconds=sec))
 
 
     # execution starts here
@@ -95,8 +95,8 @@ if __name__ == "__main__":
     sec = 0
     timectr = 0
     relaxctr = 0
-    studentR = 5
-    classR = 2
+    studentR = 0
+    classR = 5
     while True:
         checkpoint = time()
         i += 1
@@ -105,12 +105,14 @@ if __name__ == "__main__":
         tdiff = time() - checkpoint
         print("number:", i, ", students: ", studentR, ", classes", classR)
         # print("new_result", new_result[len(new_result)-2])
+        # print("new_result", new_result[len(new_result)-1])
         if floor(tdiff % 60) < 10:
             print("time: ", int(tdiff // 60), ":0", floor(tdiff % 60), sep="")
         else:
             print("time: ", int(tdiff // 60), ":", floor(tdiff % 60), sep="")
         if len(new_result) > 0:
-            print("new_result:", new_result[len(new_result) - 1, "objective"])
+            # print("new_result:", new_result[len(new_result) - 1, "objective"])
+            print(new_result[len(new_result) - 1])
             result, add = update_data(result, new_result)
             if add:
                 relaxctr = 0
@@ -118,7 +120,7 @@ if __name__ == "__main__":
                 relaxctr += 1
         else:
             timectr += 1
-            print("did not find any solution in given time bound")
+            print("Did not find any solution in given time bound")
 
         if relaxctr == 5:  # zwiększ relaksacje
             relaxctr = 0
