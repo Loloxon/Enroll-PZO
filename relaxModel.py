@@ -10,7 +10,7 @@ if __name__ == "__main__":
     # helping fuctions
 
     # function updating file competition_improve.dzn
-    def update_data(result, new_result, tries_without_improvement):
+    def update_data(result, new_result):
         n = len(new_result) - 1
         n1 = len(result) - 1
         if result[n1, "objective"] > new_result[n, "objective"]:
@@ -28,17 +28,9 @@ if __name__ == "__main__":
             a_file.writelines(list_of_lines)
             a_file.close()
             print("New solution is better (diff: ", result[n1, "objective"] - new_result[n, "objective"], ")")
-<<<<<<< HEAD
-            tries_without_improvement = 0
-            return new_result, tries_without_improvement
-        print("New solution is same or worse then old")
-        tries_without_improvement += 1
-        return result, tries_without_improvement
-=======
             return new_result, True
         print("New solution is same or worse then old")
         return result, False
->>>>>>> f642e5b1db10acb5d076968b9ad82918ef660f92
 
 
     # setting variables to relax s, c are number of students and classes to relax
@@ -100,51 +92,29 @@ if __name__ == "__main__":
 
     start_time = time()
     sec = 0
-<<<<<<< HEAD
-    tries_without_improvement = 0
-    students = 100
-    classes = 6
-
-=======
     timectr = 0
     relaxctr = 0
     studentR = 5
     classR = 2
->>>>>>> f642e5b1db10acb5d076968b9ad82918ef660f92
     while True:
-
-        if tries_without_improvement >= 3:
-            students += 10
         checkpoint = time()
         i += 1
-<<<<<<< HEAD
-        new_result = improve_solution(instance2, min(174, students), min(classes, 8), sec)
-        tdiff = time() - checkpoint
-        print("number:", i)
-
-=======
         # 9 grup na przedmiot
         new_result = improve_solution(instance1, studentR, classR, sec)
         tdiff = time() - checkpoint
         print("number:", i, ", students: ", studentR, ", classes", classR)
         # print("new_result", new_result[len(new_result)-2])
->>>>>>> f642e5b1db10acb5d076968b9ad82918ef660f92
         if floor(tdiff % 60) < 10:
             print("time: ", int(tdiff // 60), ":0", floor(tdiff % 60), sep="")
         else:
             print("time: ", int(tdiff // 60), ":", floor(tdiff % 60), sep="")
         if len(new_result) > 0:
-<<<<<<< HEAD
-            print("new_result", new_result[len(new_result) - 1])
-            result, tries_without_improvement = update_data(result, new_result, tries_without_improvement)
-=======
             print("new_result:", new_result[len(new_result) - 1, "objective"])
             result, add = update_data(result, new_result)
             if add:
                 relaxctr = 0
             else:
                 relaxctr += 1
->>>>>>> f642e5b1db10acb5d076968b9ad82918ef660f92
         else:
             timectr += 1
             print("did not find any solution in given time bound")
