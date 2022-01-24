@@ -28,7 +28,7 @@ if __name__ == "__main__":
             a_file.writelines(list_of_lines)
             a_file.close()
             print("New solution is better (diff: ", result[n1, "objective"] - new_result[n, "objective"], "; to go: ",
-                  new_result[n, "objective"]-36746,  ")", sep="")
+                  new_result[n, "objective"]-3400,  ")", sep="")
             return new_result, True
         print("New solution is same or worse then old")
         return result, False
@@ -95,8 +95,8 @@ if __name__ == "__main__":
     sec = 0
     timectr = 0
     relaxctr = 0
-    studentR = 0
-    classR = 5
+    studentR = 40
+    classR = 7
     while True:
         checkpoint = time()
         i += 1

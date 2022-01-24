@@ -96,13 +96,14 @@ array[Student, Class] of var 0..1: attends;
 % array[Student] of set of Group: assignment;
 array[Student,Group] of 0..1 : assignmentB;
 
-array[Student, Group] of var 0..1: GroupAssignmentB;
+array[Student, Group] of var 0..1: GroupAssignmentB = array2d(Student, Group, [if relaxC[group_class[G]]=1 \/ relaxS[S]=1 then assignmentB[S, G] else _ endif| S in Student, G in Group]);
 % constraint forall(S in Student where relaxS[S]=1, G in Group where relaxC[group_class[G]]=1)(if exists(G1 in assignment[S])(G1=G) then GroupAssignmentB[S,G]=1 else GroupAssignmentB[S,G]=0 endif);
 
 %    dowolny z S, C jest 0 -> nie przypisuje (czyli np. 15 studentów ma zerowane wszystko i 5 przedmiotów ma zerowane wszystko)
-constraint forall(S in Student where relaxS[S]=1, G in Group where relaxC[group_class[G]]=1)(GroupAssignmentB[S,G] = assignmentB[S,G]);
+% constraint forall(S in Student where relaxS[S]=1, G in Group where relaxC[group_class[G]]=1)(GroupAssignmentB[S,G] = assignmentB[S,G]);
+% constraint if (relaxS[1]=1 * relaxC[1])=1 then GroupAssignmentB[1,1]=assignmentB[1,1] endif;
 %    dowolny z S, C jest 1 -> przypisuje (czyli np. 15 studentów ma zerowane 5 przedmiotów)
-% constraint forall(S in Student, G in Group)(if relaxC[group_class[G]]=1 \/ relaxS[S]=1 then GroupAssignmentB[S,G] = assignmentB[S,G] endif);
+constraint forall(S in Student, G in Group)(if relaxC[group_class[G]]=1 \/ relaxS[S]=1 then GroupAssignmentB[S,G] = assignmentB[S,G] endif);
 
 array[Student] of 0..1: relaxS;
 array[Class] of 0..1: relaxC;
@@ -142,5 +143,5 @@ output
     ++ ["total_break_disappointment = " ++ show(sum([normalized_break_disappointment[S] | S in Student])) ++ ";\n"]
     ++ ["total_preference_disappointment = " ++ show(sum(preference_disappointment)) ++ ";\n"]
     ++ ["objective = " ++ show(objective) ++ ";\n"]
-%     ++ ["GroupAssignmentB = " ++ show([GroupAssignmentB[S,G] | S in Student, G in Group])]
+    ++ ["GroupAssignmentB = " ++ show([GroupAssignmentB[S,G] | S in Student, G in Group])]
     
