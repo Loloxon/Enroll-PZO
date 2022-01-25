@@ -68,9 +68,9 @@ if __name__ == "__main__":
         data = open("./data/competition_improve.dzn", "r")
         list_of_lines = data.readlines()
         # will be upgraded to f-string later or maybe not
-        list_of_lines[18] = "relaxS = " + str(S) + ";\n"
-        list_of_lines[19] = "relaxC = " + str(C) + ";\n"
-        list_of_lines[20] = "relaxD = " + str(D) + ";\n"
+        list_of_lines[17] = "relaxS = " + str(S) + ";\n"
+        list_of_lines[18] = "relaxC = " + str(C) + ";\n"
+        list_of_lines[19] = "relaxD = " + str(D) + ";\n"
         a_file = open("./data/competition_improve.dzn", "w")
         a_file.writelines(list_of_lines)
         a_file.close()
@@ -98,16 +98,16 @@ if __name__ == "__main__":
     i = 0
     data = open("./data/competition_improve.dzn", "r")
     list_of_lines = data.readlines()
-    print("starting objective:", int(str(list_of_lines[21])[17:-2]))
-    result = {(0, "objective"): int(str(list_of_lines[21])[17:-2])}
+    print("starting objective:", int(str(list_of_lines[20])[17:-2]))
+    result = {(0, "objective"): int(str(list_of_lines[20])[17:-2])}
 
     start_time = time()
     sec = 0
     timectr = 0
     relaxctr = 0
-    studentR = 20
+    studentR = 30
     classR = 5
-    dayR = 1
+    dayR = 3
     while True:
         checkpoint = time()
         i += 1

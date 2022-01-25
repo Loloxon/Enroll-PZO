@@ -97,6 +97,7 @@ array[Student, Class] of var 0..1: attends;
 array[Student,Group] of 0..1 : assignmentB;
 
 array[Student, Group] of var 0..1: GroupAssignmentB;
+%  = array2d(Student, Group, [if relaxC[group_class[G]]=1 \/ relaxS[S]=1 \/ relaxD[group_day[G]]=1 then assignmentB[S,G] else _ endif | S in Student, G in Group]);
 % constraint forall(S in Student where relaxS[S]=1, G in Group where relaxC[group_class[G]]=1)(if exists(G1 in assignment[S])(G1=G) then GroupAssignmentB[S,G]=1 else GroupAssignmentB[S,G]=0 endif);
 
 %    dowolny z S, C jest 0 -> nie przypisuje (czyli np. 15 studentów ma zerowane wszystko i 5 przedmiotów ma zerowane wszystko)
