@@ -117,6 +117,8 @@ constraint forall(S in Student, G in Group)(student_prefers[S,G] * GroupAssignme
 % then exists(G in Group where group_class[G] = C)(GroupAssignmentB[S,G]=1) endif);
 constraint forall(S in Student, C in Class)(sum(G in Group where group_class[G] = C)(GroupAssignmentB[S,G])=attends[S,C]);
 
+constraint forall(S in Student)(sum(C in Class)(attends[S,C])=sum(G in Group)(GroupAssignmentB[S,G]));
+
 % constraint forall(S in Student, C in Class)(if not forall(G in Group where group_class[G] = C)(student_prefers[S,G]=-1)
 % then attends[S,C]=1 else attends[S,C]=0 endif);
 constraint forall(S in Student, C in Class)(if sum(G in Group where group_class[G]=C)(student_prefers[S,G])>=0
