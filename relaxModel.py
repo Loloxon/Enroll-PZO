@@ -113,7 +113,7 @@ if __name__ == "__main__":
     timectr = 0
     relaxctr = 0
     studentR = -1
-    classR = 5
+    classR = 7
     dayR = -1
     while True:
         checkpoint = time()
