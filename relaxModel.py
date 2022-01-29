@@ -27,8 +27,8 @@ if __name__ == "__main__":
             a_file = open("./data/competition_improve.dzn", "w")
             a_file.writelines(list_of_lines)
             a_file.close()
-            print("New solution is better (diff: ", result[n1, "objective"] - new_result[n, "objective"], "; to go: ",
-                  new_result[n, "objective"]-34000,  ")", sep="")
+            print("New solution is better (diff: ", result[n1, "objective"] - new_result[n, "objective"],
+                  "; to go 'til Mati: ", new_result[n, "objective"]-35000,  ")", sep="")
             return new_result, True
         print("New solution is same or worse then old")
         return result, False
@@ -84,7 +84,7 @@ if __name__ == "__main__":
 
         with instance.branch() as opt:
             opt.add_file("./data/competition_improve.dzn", True)
-            return opt.solve(intermediate_solutions=True, timeout=timedelta(minutes=12, seconds=sec))
+            return opt.solve(intermediate_solutions=True, timeout=timedelta(minutes=6, seconds=sec))
 
 
     # execution starts here
@@ -113,8 +113,8 @@ if __name__ == "__main__":
     timectr = 0
     relaxctr = 0
     studentR = -1
-    classR = 7
-    dayR = -1
+    classR = 5
+    dayR = 3
     while True:
         checkpoint = time()
         i += 1
@@ -139,8 +139,10 @@ if __name__ == "__main__":
 
         if relaxctr == 10:  # zwiększ relaksacje
             relaxctr = 0
-            classR += 1
-            studentR += 15
+            if classR != -1:
+                classR += 1
+            if studentR != -1:
+                studentR += 15
         if timectr == 2:  # zwiększ czas
             timectr = 0
             sec += 30

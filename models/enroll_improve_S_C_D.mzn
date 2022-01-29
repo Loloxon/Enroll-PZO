@@ -57,7 +57,7 @@ int: start = min(group_start);
 int: end = max(group_start) + max(class_duration);
 
 int: maxObjective;
-%  = 36500;
+% = 365000;
 int: minObjective = 30000;
  
 array[Student] of var 0..n_classes*max(student_prefers) : preference_disappointment = [bestPref[S] - gotPref[S] | S in Student];
@@ -104,7 +104,7 @@ array[Student, Group] of var 0..1: GroupAssignmentB;
 %    dowolny z S, C jest 0 -> nie przypisuje (czyli np. 15 studentów ma zerowane wszystko i 5 przedmiotów ma zerowane wszystko)
 % constraint forall(S in Student where relaxS[S]=1, G in Group where relaxC[group_class[G]]=1)(GroupAssignmentB[S,G] = assignmentB[S,G]);
 %    dowolny z S, C jest 1 -> przypisuje (czyli np. 15 studentów ma zerowane 5 przedmiotów)
-constraint forall(S in Student, G in Group, D in Day)(if relaxC[group_class[G]]=1 \/ relaxS[S]=1 \/ relaxD[group_day[G]]=1 then GroupAssignmentB[S,G] = assignmentB[S,G] endif);
+% constraint forall(S in Student, G in Group, D in Day)(if relaxC[group_class[G]]=1 \/ relaxS[S]=1 \/ relaxD[group_day[G]]=1 then GroupAssignmentB[S,G] = assignmentB[S,G] endif);
 
 array[Day] of 0..1: relaxD;
 array[Student] of 0..1: relaxS;
@@ -134,6 +134,10 @@ constraint forall(G in Group)(sum(S in Student)(GroupAssignmentB[S,G])<=class_si
 constraint forall(S in Student, C in Class)(sum(G in Group where group_class[G]=C)(GroupAssignmentB[S,G])<=1);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% annotation warm_start(array[int,int] of var int: X, array[int,int] of opt int: Y) = 
+% annotation warm_start(col(GroupAssignmentB,1) [if relaxC[group_class[G]]=1 \/ relaxS[1]=1 \/ relaxD[group_day[G]]=1 then assignmentB[1,G] else _ endif | G in Group]));
+% array[int] of var int: Stu;
+% annotation warm_start(Stu, {s | s in Student});
 solve 
       :: seq_search([
         int_search(GroupAssignmentB, dom_w_deg, indomain_max),
