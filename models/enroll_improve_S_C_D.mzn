@@ -64,11 +64,12 @@ array[Student] of 0..n_classes*max(student_prefers): bestPref = [sum([max([if gr
 
 array[Student] of var 0..n_classes*max(student_prefers): gotPref = [sum([sum([if GroupAssignmentB[S,G]=1 /\ group_class[G] = C then student_prefers[S,G] else 0 endif | G in Group]) | C in Class]) |S in Student];
 % niezadowolenie z powodu przerw
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 array[Student] of var 0..end*n_days : break_disappointment = [sum([staying_at_uni[S,D] - length_of_lessons[S,D] | D in Day]) | S in Student];
 
 array[Student] of var 0..24*n_days: normalized_break_disappointment =
 [ceil_div(break_disappointment[S],n_time_units_in_hour)| S in Student];
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 array[Student, Day] of var 0..end : staying_at_uni = array2d(Student, Day,
     [max(max([if GroupAssignmentB[S,G]=1 /\ group_day[G] == D
                                        then group_start[G] + class_duration[group_class[G]]
@@ -87,7 +88,8 @@ array[Student, Day] of var 0..end : length_of_lessons;
 % then 1 else 0 endif | G in Group where group_day[G]=D, T in start..end]));
 constraint forall(S in Student, D in Day)(length_of_lessons[S,D] = sum([GroupAssignmentB[S,G]
 | G in Group where group_day[G]=D, T in start..end where group_start[G]<=T /\ group_start[G]+class_duration[group_class[G]]>T]));
-    
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 var minObjective..maxObjective : objective = sum([pow(ceil_div(student_break_importance[S] * normalized_break_disappointment[S] + (10 - student_break_importance[S]) * preference_disappointment[S],10),2) | S in Student]);
 
 array[Student, Class] of var 0..1: attends;
