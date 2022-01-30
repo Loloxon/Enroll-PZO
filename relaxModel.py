@@ -137,7 +137,7 @@ if __name__ == "__main__":
             timectr += 1
             print("Did not find any solution in given time bound")
 
-        if relaxctr == 10:  # zwiększ relaksacje
+        if relaxctr == 6:  # zwiększ relaksacje
             relaxctr = 0
             if classR != -1:
                 classR += 1
