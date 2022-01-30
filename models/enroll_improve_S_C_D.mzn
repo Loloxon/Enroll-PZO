@@ -31,8 +31,6 @@ array[Student, Group] of int: student_prefers;
 function var int: ceil_div(var int: x, var int: y) =
   x div y + ((x mod y) > 0);
 
-% predicate overlap_in_time(var Group: G1, var Group: G2) = group_day[G1] = group_day[G2] /\
-%         group_start[G1]+class_duration[group_class[G1]]+travel_duration[group_location[G1],group_location[G2]]>group_start[G2] /\ group_start[G1]<group_start[G2]+class_duration[group_class[G2]]+travel_duration[group_location[G2],group_location[G1]];
 predicate overlap_in_time(var Group: G1, var Group: G2) = group_day[G1] = group_day[G2] /\
         not(group_start[G1]+class_duration[group_class[G1]]+travel_duration[group_location[G1],group_location[G2]]<=group_start[G2] \/ group_start[G1]>=group_start[G2]+class_duration[group_class[G2]]+travel_duration[group_location[G2],group_location[G1]]);
 
@@ -62,7 +60,7 @@ int: minObjective = 30000;
  
 array[Student] of var 0..n_classes*max(student_prefers) : preference_disappointment = [bestPref[S] - gotPref[S] | S in Student];
 
-array[Student] of var 0..n_classes*max(student_prefers): bestPref = [sum([max([if group_class[G] = C then student_prefers[S,G] else 0 endif | G in Group]) | C in Class]) |S in Student];
+array[Student] of 0..n_classes*max(student_prefers): bestPref = [sum([max([if group_class[G] = C then student_prefers[S,G] else 0 endif | G in Group]) | C in Class]) |S in Student];
 
 array[Student] of var 0..n_classes*max(student_prefers): gotPref = [sum([sum([if GroupAssignmentB[S,G]=1 /\ group_class[G] = C then student_prefers[S,G] else 0 endif | G in Group]) | C in Class]) |S in Student];
 % niezadowolenie z powodu przerw
@@ -98,36 +96,27 @@ array[Student, Class] of var 0..1: attends;
 array[Student,Group] of 0..1 : assignmentB;
 
 array[Student, Group] of var 0..1: GroupAssignmentB;
-%  = array2d(Student, Group, [if relaxC[group_class[G]]=1 \/ relaxS[S]=1 \/ relaxD[group_day[G]]=1 then assignmentB[S,G] else _ endif |  S in Student, G in Group]);
-% constraint forall(S in Student where relaxS[S]=1, G in Group where relaxC[group_class[G]]=1)(if exists(G1 in assignment[S])(G1=G) then GroupAssignmentB[S,G]=1 else GroupAssignmentB[S,G]=0 endif);
 
-%    dowolny z S, C jest 0 -> nie przypisuje (czyli np. 15 studentów ma zerowane wszystko i 5 przedmiotów ma zerowane wszystko)
-% constraint forall(S in Student where relaxS[S]=1, G in Group where relaxC[group_class[G]]=1)(GroupAssignmentB[S,G] = assignmentB[S,G]);
-%    dowolny z S, C jest 1 -> przypisuje (czyli np. 15 studentów ma zerowane 5 przedmiotów)
-constraint forall(S in Student, G in Group, D in Day)(if relaxC[group_class[G]]=1 \/ relaxS[S]=1 \/ relaxD[group_day[G]]=1 then GroupAssignmentB[S,G] = assignmentB[S,G] endif);
+constraint forall(S in Student, G in Group)(if relaxC[group_class[G]]=1 \/ relaxS[S]=1 \/ relaxD[group_day[G]]=1 then GroupAssignmentB[S,G] = assignmentB[S,G] endif);
 
 array[Day] of 0..1: relaxD;
 array[Student] of 0..1: relaxS;
 array[Class] of 0..1: relaxC;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%             constraints             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% constraint forall(S in Student, G in Group)(if student_prefers[S,G]=-1 then GroupAssignmentB[S,G] = 0 endif);
 constraint forall(S in Student, G in Group)(student_prefers[S,G] * GroupAssignmentB[S,G] >= 0);
 
-% constraint forall(S in Student, C in Class)(if attends[S,C]=1
-% then exists(G in Group where group_class[G] = C)(GroupAssignmentB[S,G]=1) endif);
 constraint forall(S in Student, C in Class)(sum(G in Group where group_class[G] = C)(GroupAssignmentB[S,G])=attends[S,C]);
 
 constraint forall(S in Student)(sum(C in Class)(attends[S,C])=sum(G in Group)(GroupAssignmentB[S,G]));
 
-% constraint forall(S in Student, C in Class)(if not forall(G in Group where group_class[G] = C)(student_prefers[S,G]=-1)
-% then attends[S,C]=1 else attends[S,C]=0 endif);
 constraint forall(S in Student, C in Class)(if sum(G in Group where group_class[G]=C)(student_prefers[S,G])>=0
 then attends[S,C]=1 else attends[S,C]=0 endif);
 
+
 % albo nie nachodzą na siebie, albo są w cohabitats
-constraint forall(S in Student, G1, G2 in Group where G1<G2 /\ GroupAssignmentB[S,G1]=1 /\ GroupAssignmentB[S,G2]=1)(not(
-overlap_in_time(G1, G2)
-/\ not exists(G in GroupCohabitats)({G1, G2}=group_cohabitats[G])));
+constraint forall(S in Student, G1, G2 in Group where G1<G2 /\ GroupAssignmentB[S,G1]=1 /\ GroupAssignmentB[S,G2]=1)(
+exists(G in GroupCohabitats)({G1, G2}=group_cohabitats[G]) \/ not overlap_in_time(G1, G2)
+);
 % grupa nie przekracza liczebności
 constraint forall(G in Group)(sum(S in Student)(GroupAssignmentB[S,G])<=class_size[group_class[G]]);
 % każdy student tylko jedna grupa danego przedmiotu
@@ -140,8 +129,15 @@ constraint forall(S in Student, C in Class)(sum(G in Group where group_class[G]=
 % annotation warm_start(Stu, {s | s in Student});
 solve 
       :: seq_search([
-        int_search(GroupAssignmentB, dom_w_deg, indomain_max),
         int_search(attends, dom_w_deg, indomain_max),
+      
+        int_search(GroupAssignmentB, dom_w_deg, indomain_max),
+        int_search(gotPref, dom_w_deg, indomain_random),
+        int_search(preference_disappointment, dom_w_deg, indomain_random),
+        
+        int_search(length_of_lessons, dom_w_deg, indomain_random),
+        int_search(staying_at_uni, dom_w_deg, indomain_random),
+        int_search(break_disappointment, dom_w_deg, indomain_random),
         ])
 %         satisfy;
         minimize objective;
