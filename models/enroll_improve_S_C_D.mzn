@@ -65,7 +65,7 @@ array[Student] of 0..n_classes*max(student_prefers): bestPref = [sum([max([if gr
 array[Student] of var 0..n_classes*max(student_prefers): gotPref = [sum([sum([if GroupAssignmentB[S,G]=1 /\ group_class[G] = C then student_prefers[S,G] else 0 endif | G in Group]) | C in Class]) |S in Student];
 % niezadowolenie z powodu przerw
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-array[Student] of var 0..end*n_days : break_disappointment = [sum([staying_at_uni[S,D] - length_of_lessons[S,D] | D in Day]) | S in Student];
+array[Student] of var 0..end*n_days : break_disappointment = [sum([staying_at_uni[S,D]|D in Day]) - sum([length_of_lessons[S,D] | D in Day]) | S in Student];
 
 array[Student] of var 0..24*n_days: normalized_break_disappointment =
 [ceil_div(break_disappointment[S],n_time_units_in_hour)| S in Student];

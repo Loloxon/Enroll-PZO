@@ -84,7 +84,7 @@ if __name__ == "__main__":
 
         with instance.branch() as opt:
             opt.add_file("./data/competition_improve.dzn", True)
-            return opt.solve(intermediate_solutions=True, timeout=timedelta(minutes=5, seconds=sec))
+            return opt.solve(intermediate_solutions=True, timeout=timedelta(minutes=25, seconds=sec))
 
 
     # execution starts here
@@ -112,8 +112,8 @@ if __name__ == "__main__":
     sec = 0
     timectr = 0
     relaxctr = 0
-    studentR = 40
-    classR = 6
+    studentR = 60
+    classR = 7
     dayR = -1
     while True:
         checkpoint = time()
