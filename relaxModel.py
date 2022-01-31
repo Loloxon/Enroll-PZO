@@ -112,8 +112,8 @@ if __name__ == "__main__":
     sec = 0
     timectr = 0
     relaxctr = 0
-    studentR = 60
-    classR = 7
+    studentR = -1
+    classR = 3
     dayR = -1
     while True:
         checkpoint = time()
@@ -137,7 +137,7 @@ if __name__ == "__main__":
             timectr += 1
             print("Did not find any solution in given time bound")
 
-        if relaxctr == 6:  # zwiększ relaksacje
+        if relaxctr == 10:  # zwiększ relaksacje
             relaxctr = 0
             if classR != -1:
                 classR += 1
