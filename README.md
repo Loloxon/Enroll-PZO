@@ -5,7 +5,7 @@ It has been directly inspired by the system working at the AGH University (Facul
 
 ## Competition :boxing_glove:
 
-Check out the :boxing_glove: [the competition scoreboard on wiki](../../wikis/Scoreboard/). :boxing_glove:
+Check out the :boxing_glove: [the competition scoreboard on wiki](https://gitlab.com/agh-courses/2021-2022/constraint-programming/projects/group-enroll/-/wikis/Scoreboard/). :boxing_glove:
 
 ## Instructions
 
