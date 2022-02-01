@@ -105,9 +105,9 @@ if __name__ == "__main__":
     sec = 0
     timectr = 0
     relaxctr = 0
-    studentR = 60
-    classR = 5
-    dayR = -1
+    studentR = 0
+    classR = 0
+    dayR = 0
     while True:
         checkpoint = time()
         i += 1

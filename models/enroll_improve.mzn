@@ -149,5 +149,5 @@ output
     ++ ["total_break_disappointment = " ++ show(sum([normalized_break_disappointment[S] | S in Student])) ++ ";\n"]
     ++ ["total_preference_disappointment = " ++ show(sum(preference_disappointment)) ++ ";\n"]
     ++ ["objective = " ++ show(objective) ++ ";\n"]
-    ++ ["GroupAssignmentB = " ++ show([GroupAssignmentB[S,G] | S in Student, G in Group])]
+%     ++ ["GroupAssignmentB = " ++ show([GroupAssignmentB[S,G] | S in Student, G in Group])]
     
