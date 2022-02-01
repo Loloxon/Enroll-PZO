@@ -92,15 +92,8 @@ if __name__ == "__main__":
     # getting op gurobi solver
     solver = Solver.lookup("gurobi")
 
-    # setting first instance relaxing solution based on randomly chosen students or classes
-    model1 = Model("models/enroll_improve.mzn")
-    instance1 = Instance(solver, model1)
-    # setting second instance relaxing solution based on chosen students and classes mixed
-    model2 = Model("models/enroll_improve_mixed.mzn")
-    instance2 = Instance(solver, model2)
-    # setting third instance relaxing solution based on chosen students, classes and days mixed
-    model3 = Model("models/enroll_improve_S_C_D.mzn")
-    instance3 = Instance(solver, model3)
+    model = Model("models/enroll_improve.mzn")
+    instance = Instance(solver, model)
 
     i = 0
     data = open("./data/competition_improve.dzn", "r")
@@ -112,14 +105,14 @@ if __name__ == "__main__":
     sec = 0
     timectr = 0
     relaxctr = 0
-    studentR = 15
-    classR = -1
+    studentR = 60
+    classR = 5
     dayR = -1
     while True:
         checkpoint = time()
         i += 1
         # 9 grup na przedmiot mniej więcej
-        new_result = improve_solution(instance3, min(studentR, 130), min(classR, 10), min(dayR, 5), sec)
+        new_result = improve_solution(instance, min(studentR, 130), min(classR, 10), min(dayR, 5), sec)
         tdiff = time() - checkpoint
         print("number:", i, ", students: ", min(studentR, 130), ", classes", min(classR, 10), ", days: ", min(dayR, 5))
         if floor(tdiff % 60) < 10:
@@ -137,12 +130,12 @@ if __name__ == "__main__":
             timectr += 1
             print("Did not find any solution in given time bound")
 
-        if relaxctr == 2:  # zwiększ relaksacje
+        if relaxctr == 5:  # zwiększ relaksacje
             relaxctr = 0
             if classR != -1:
                 classR += 1
             if studentR != -1:
-                studentR += 1
+                studentR += 15
         if timectr == 1:  # zwiększ czas
             timectr = 0
             sec += 30
