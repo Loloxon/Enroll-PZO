@@ -196,7 +196,7 @@ constraint forall(G in Group)(count(col(GroupAssignment,group_class[G]),G)<=clas
 
 % liczenie czasu na zajęciach
 predicate overlap_in_time(var Group: G1, var Group: G2) = group_day[G1] = group_day[G2] /\
-        group_start[G1]+class_duration[group_class[G1]]>group_start[G2] /\ group_start[G1]<group_start[G2]+class_duration[group_class[G2]];
+        not(group_start[G1]+class_duration[group_class[G1]]+travel_duration[group_location[G1],group_location[G2]]<=group_start[G2] \/ group_start[G1]>=group_start[G2]+class_duration[group_class[G2]]+travel_duration[group_location[G2],group_location[G1]]);
 
 array[Student, Class, Class] of var bool: coexists;
 constraint forall(S in Student, C1, C2 in Class)(
