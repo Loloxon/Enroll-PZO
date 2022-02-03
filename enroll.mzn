@@ -67,7 +67,7 @@ array[Student, Day] of var 0..end : staying_at_uni = array2d(Student, Day,
 array[Student, Day] of var 0..end : length_of_lessons = array2d(Student, Day, 
     [sum([GroupAssignmentB[S,G] | G in Group where group_day[G]=D, T in start..end where group_start[G]<=T /\ group_start[G]+class_duration[group_class[G]]>T]) | S in Student, D in Day]);
 
-array[Student, Class] of var 0..1: attends = array2d(Student, Class, [if sum(G in Group where group_class[G]=C)(student_prefers[S,G])>=0
+array[Student, Class] of var 0..1: attends = array2d(Student, Class, [if sum(G in Group where group_class[G]=C)(student_prefers[S,G]+1)>0
 then 1 else 0 endif | S in Student, C in Class]);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%             constraints             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 constraint forall(S in Student, G in Group)(student_prefers[S,G] * GroupAssignmentB[S,G] >= 0);
@@ -106,5 +106,5 @@ output
     ++ ["total_break_disappointment = " ++ show(sum([normalized_break_disappointment[S] | S in Student])) ++ ";\n"]
     ++ ["total_preference_disappointment = " ++ show(sum(preference_disappointment)) ++ ";\n"]
     ++ ["objective = " ++ show(objective) ++ ";\n"]
-%     ++ ["GroupAssignmentB = " ++ show([GroupAssignmentB[S,G] | S in Student, G in Group])]
+%     ++ ["GroupAssignmentB = " ++ show([attends[S,C] | S in Student, C in Class])]
     

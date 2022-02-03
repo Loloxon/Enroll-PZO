@@ -38,7 +38,7 @@ function var int: ceil_div(var int: x, var int: y) =
 array[Student, Group] of var bool: GroupAssignmentB;
 constraint forall(S in Student, G in Group)(if student_prefers[S,G]=-1 then GroupAssignmentB[S,G] = false endif);
 
-array[Student, Class] of var 0..1: attends = array2d(Student, Class, [if sum(G in Group where group_class[G]=C)(student_prefers[S,G])>=0
+array[Student, Class] of var 0..1: attends = array2d(Student, Class, [if sum(G in Group where group_class[G]=C)(student_prefers[S,G]+1)>0
 then 1 else 0 endif | S in Student, C in Class]);
 
 predicate overlap_in_time(var Group: G1, var Group: G2) = group_day[G1] = group_day[G2] /\
