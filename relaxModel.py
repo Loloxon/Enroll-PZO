@@ -84,13 +84,13 @@ if __name__ == "__main__":
 
         with instance.branch() as opt:
             opt.add_file("./data/competition_improve.dzn", True)
-            return opt.solve(intermediate_solutions=True, timeout=timedelta(minutes=10, seconds=sec))
+            return opt.solve(intermediate_solutions=True, timeout=timedelta(minutes=16, seconds=sec), processes=8)
 
 
     # execution starts here
 
     # getting op gurobi solver
-    solver = Solver.lookup("gurobi")
+    solver = Solver.lookup("org.minizinc.mip.gurobi")
 
     model = Model("models/enroll_improve.mzn")
     instance = Instance(solver, model)
@@ -105,9 +105,9 @@ if __name__ == "__main__":
     sec = 0
     timectr = 0
     relaxctr = 0
-    studentR = 0
-    classR = 0
-    dayR = 0
+    studentR = -1
+    classR = 3
+    dayR = -1
     while True:
         checkpoint = time()
         i += 1
@@ -135,7 +135,7 @@ if __name__ == "__main__":
             if classR != -1:
                 classR += 1
             if studentR != -1:
-                studentR += 15
+                studentR += 5
         if timectr == 1:  # zwiększ czas
             timectr = 0
             sec += 30
