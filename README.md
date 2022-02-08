@@ -3,23 +3,7 @@
 This project concerns assigning students to groups given various constraints and preferences.
 It has been directly inspired by the system working at the AGH University (Faculty of Computer Science, Electronics and Telecommunications).
 
-## Competition :boxing_glove:
-
-Check out the :boxing_glove: [the competition scoreboard on wiki](https://gitlab.com/agh-courses/2021-2022/constraint-programming/projects/group-enroll/-/wikis/Scoreboard/). :boxing_glove:
-
-## Instructions
-
-1. Fork this project into a **private** group:
-2. Add @bobot-is-a-bot as the new project's member (role: `maintainer`) 
-4. Read this Readme till the end for the instructions.
-5. Solve the problem!
-6. Automated tests will be run periodically to check quality of your model. The results will be available in the `GRADE.md`
-7. If done before the deadline, contact teacher via Teams, so he can check it earlier.
-8. To take part in the competition create file `competition.sol` containing solution for the `competition.dzn` instance.
-
-## Problem Details
-
-Imagine working in the faculty administration at the AGH UST in Krakow. Every year the same story: first you have to prepare the schedule for the whole year, later you have to assign students to the available groups. Recently your faculty started to notice the obnoxious difficulty of those tasks and tried to introduce some automation. Unfortunately it doesn't work as well as you hoped. Therefore you are going to the matter into your own hands. To be realistic, you will focus on the group assignment as it's less disruptive than the whole schedule. After spending some time under the shower and having several eureka moments, you came with the following definition of the problem.
+Every year the same story: first you have to prepare the schedule for the whole year, later you have to assign students to the available groups. Recently faculty started to notice the obnoxious difficulty of those tasks and tried to introduce some automation. Unfortunately it doesn't work as well as you hoped. Therefore you are going to the matter into your own hands. To be realistic, you will focus on the group assignment as it's less disruptive than the whole schedule. After spending some time under the shower and having several eureka moments, you came with the following definition of the problem.
 
 So, first, the input has to contain the current schedule of all the involved groups[^group] over the set of days[^day]. Only then we will focus on the students[^student] and their preferences. Finally we will combine them to obtain an objective function and print the output.  
 
@@ -84,26 +68,3 @@ where:
 
 The last four lines (objective components) will be useful for the grader script to check if your model calculates them correctly.
 
-## Parameters Explained
-
-[^group]: `Group` is a set containing unique identifiers of groups.
-[^group_class]: `group_class` array maps groups to the corresponding classes[^class].
-[^group_day]: `group_day` array defines what day[^day] the groups start.
-[^group_start]: `group_start` array defines at what hour (in the instance specific time unit[^time]) the groups start.
-[^group_location]: `group_location` array maps groups to their locations[^location].
-[^group_cohabitats]: `group_cohabitats` array contains sets of groups[^group] can coexist at the same time.
-[^class]: `Class` is a set containing unique identifiers of classes.
-[^class_duration]: `class_duration` array contains classes' durations in the instance specific time unit[^time].
-[^class_size]: `class_size` array contains how many students can attend a single group of this class.
-[^day]: `Day` is a set containing unique identifiers of days.
-[^time]: `Time` set contains available time indexes, e.g. `0` is the beginning of the day and the biggest value is the end of the day.
-[^location]: `Location` is a set containing unique identifiers of locations.
-[^travel_duration]: `travel_duration` matrix contains info, how long (in the instance specific time unit[^time]) it takes to move between locations (indices of the `location_name`[^location_name]).
-[^being_late_treshold]: `being_late_treshold` defines what is the university policy on being late. Student has to appear at the class without exceeding this time.
-[^preference]: `Preference` is a set of possible preferences over the groups, the `-1` means that the student is not allowed to be assigned to the given group.
-[^student]: `Student` is a set containing unique identifiers of students.
-[^student_can_teleport]: `student_can_teleport` array tells whether student cares about the distance between the building at the university.
-[^student_loves_breaks]: `student_loves_breaks` array tells whether student accepts long break between the groups.
-[^student_prefers]: `student_prefers` matrix contains prefences[^preference] student[^student] assigns to various groups[^group]. If all the groups of the given class have assigned the lowest preference it means that student doesn't attend this class.
-[^break_to_disappointment_multiplier]: `break_to_disappointment_multiplier` is a weight associated with the "long breaks" objective component.
-[^late_to_disappointment_multiplier]: `late_to_disappointment_multiplier` is a weight associated with the "being late" objective component.
